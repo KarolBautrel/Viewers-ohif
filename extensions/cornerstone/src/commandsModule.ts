@@ -197,6 +197,13 @@ function commandsModule({
         measurementServiceSource.remove(uid);
       }
     },
+    /** Describes measurements. */
+    describeMeasurement: ({ uid, description }) => {
+      if (uid) {
+        measurementServiceSource.addDescription(uid, description);
+      }
+    },
+
     /**
      * Common logic for handling measurement label updates through dialog
      * @param uid - measurement uid

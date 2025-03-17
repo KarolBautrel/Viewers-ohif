@@ -589,6 +589,22 @@ class MeasurementService extends PubSubService {
     });
   }
 
+/**
+ * Adds description to uuid-based measurement
+ * 
+ */
+  addDescription(measurementUID:string, description:string):void{
+    const measurement =
+      this.measurements.get(measurementUID) || this.unmappedMeasurements.get(measurementUID);
+      if (!measurementUID || !measurement) {
+        console.debug(`No uid provided, or unable to find measurement by uid.`);
+        return;
+      }
+      /// Need to figure out more about structure
+      console.log("got measurement", measurement, "Gonna work with it futher")
+  }
+
+
   /**
    * Clears measurements that match the filter, defaulting to all of them.
    * That allows, for example, clearing all of a single studies measurements
