@@ -45,7 +45,9 @@ export default function PanelMeasurement({
   });
   const toggleLockMeasurement = bindCommand('toggleLockMeasurement');
   const toggleVisibilityMeasurement = bindCommand('toggleVisibilityMeasurement');
-
+  /// Here I need to add action connected to creating description (not opening modal)
+  const describeMeasurement = bindCommand("describeMeasurement")
+  /// 
   const additionalFilter = filterAdditionalFinding(measurementService);
 
   const measurements = displayMeasurements.filter(
@@ -61,6 +63,7 @@ export default function PanelMeasurement({
     onToggleVisibility: toggleVisibilityMeasurement,
     onToggleLocked: toggleLockMeasurement,
     onRename: renameMeasurement,
+    onDescribe: describeMeasurement
   };
 
   return (

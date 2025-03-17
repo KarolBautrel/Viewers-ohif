@@ -6,6 +6,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '../../components/DropdownMenu';
+import DescribeModal from '../DescribeModal/index';
 import { Icons } from '../../components/Icons/Icons';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../../components/Tooltip/Tooltip';
 
@@ -55,31 +56,29 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '../../components/Toolti
  * @property {() => void} onDelete - Callback when delete is requested
  * @property {() => void} onColor - Callback when color change is requested
  */
-interface DataRowProps {
+ interface DataRowProps {
+  key: string; 
   number: number;
   disableEditing: boolean;
   description: string;
   details?: { primary: string[]; secondary: string[] };
-  //
   isSelected?: boolean;
   onSelect?: () => void;
-  //
   isVisible: boolean;
   onToggleVisibility: () => void;
-  //
   isLocked: boolean;
   onToggleLocked: () => void;
-  //
   title: string;
   onRename: () => void;
-  //
   onDelete: () => void;
-  //
   colorHex?: string;
   onColor: () => void;
+  onDescribe?: (uid: string, description: string) => void;
 }
 
+
 const DataRow: React.FC<DataRowProps> = ({
+  key, 
   number,
   title,
   colorHex,
@@ -91,6 +90,7 @@ const DataRow: React.FC<DataRowProps> = ({
   onRename,
   onDelete,
   onColor,
+  onDescribe,
   isSelected = false,
   isVisible = true,
   disableEditing = false,
@@ -104,6 +104,8 @@ const DataRow: React.FC<DataRowProps> = ({
       rowRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, [isSelected]);
+
+  const [isDescribeModalOpen, setDescribeModalOpen] = useState(false);
 
   const handleAction = (action: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -119,6 +121,10 @@ const DataRow: React.FC<DataRowProps> = ({
         break;
       case 'Color':
         onColor();
+        break;
+      case 'Describe':
+        setDescribeModalOpen(true);
+        console.log("MODAL OPEN")
         break;
     }
   };
@@ -316,12 +322,26 @@ const DataRow: React.FC<DataRowProps> = ({
                     <Icons.Lock className="text-foreground" />
                     <span className="pl-2">{isLocked ? 'Unlock' : 'Lock'}</span>
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={e => handleAction('Describe', e)}>
+                    <Icons.Info className="text-foreground" />
+                    <span className="pl-2">{'Describe'}</span>
+                  </DropdownMenuItem>
                 </>
               </DropdownMenuContent>
             </DropdownMenu>
           )}
         </div>
       </div>
+      <DescribeModal
+        isOpen={isDescribeModalOpen}
+        onClose={() => setDescribeModalOpen(false)}
+        onSave={description => {
+          if (onDescribe) {
+            onDescribe(key, description);
+          }
+          setDescribeModalOpen(false);
+        }}
+      />
 
       {/* Details Section */}
       {details && (details.primary?.length > 0 || details.secondary?.length > 0) && (

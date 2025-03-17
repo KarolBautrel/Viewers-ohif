@@ -11,6 +11,8 @@ interface MeasurementTableContext {
   onToggleLocked?: (uid: string) => void;
   onRename?: (uid: string) => void;
   onColor?: (uid: string) => void;
+  /// HERE
+  onDescribe?: (uid: string, description: string) => void; 
   disableEditing?: boolean;
 }
 
@@ -114,6 +116,7 @@ const Row = ({ item, index }: RowProps) => {
     onToggleLocked,
     onRename,
     onColor,
+    onDescribe,
     disableEditing,
   } = useMeasurementTableContext('MeasurementTable.Row');
 
@@ -134,6 +137,7 @@ const Row = ({ item, index }: RowProps) => {
       onToggleVisibility={() => onToggleVisibility(item.uid)}
       onToggleLocked={() => onToggleLocked(item.uid)}
       onRename={() => onRename(item.uid)}
+      onDescribe={(uid, description) => onDescribe?.(uid, description)}
       // onColor={() => onColor(item.uid)}
     />
   );
