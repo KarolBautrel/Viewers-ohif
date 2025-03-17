@@ -9,20 +9,13 @@ interface TreeNode {
 }
 
 interface DescribeTreeProps {
-  /**
-   * Called with the final "description" or path.
-   */
+
   onSelect: (description: string) => void;
 }
 
-/**
- * This is our step-by-step wizard, letting users drill down
- * through multiple levels of chest/head imaging options.
- */
+
 const DescribeTree: React.FC<DescribeTreeProps> = ({ onSelect }) => {
-  // The root of our wizard steps
   const [currentNode, setCurrentNode] = useState<TreeNode | null>(describeData);
-  // Keep track of all selected labels
   const [path, setPath] = useState<string[]>([]);
 
   if (!currentNode) {
@@ -30,23 +23,17 @@ const DescribeTree: React.FC<DescribeTreeProps> = ({ onSelect }) => {
   }
 
   const handleOptionClick = (optionLabel: string, nextNode?: TreeNode) => {
-    // Add the label to our path
     const newPath = [...path, optionLabel];
     setPath(newPath);
 
     if (nextNode) {
-      // Move on to the next "step" in the wizard
       setCurrentNode(nextNode);
     } else {
-      // Final selection: no further steps
       const finalSelection = newPath.join(" > ");
       console.log("Final selection path:", finalSelection);
 
-      // You can pass the final path back to parent
-      // or do anything you like with it:
       onSelect(finalSelection);
 
-      // Optionally reset for next usage:
       setPath([]);
       setCurrentNode(describeData);
     }
@@ -54,10 +41,8 @@ const DescribeTree: React.FC<DescribeTreeProps> = ({ onSelect }) => {
 
   return (
     <div className="space-y-4">
-      {/* Wizard Question */}
       <h3 className="text-lg font-semibold">{currentNode.question}</h3>
 
-      {/* List the options for this step */}
       <div className="space-y-2">
         {currentNode.options.map((option) => (
           <div
@@ -75,7 +60,7 @@ const DescribeTree: React.FC<DescribeTreeProps> = ({ onSelect }) => {
 
 export default DescribeTree;
 
-// The top-level data used:
+/// JUST HARDCODED EXAMPLE DATA
 const describeData = {
   question: "Which region would you like to describe?",
   options: [
