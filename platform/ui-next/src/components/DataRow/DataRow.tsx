@@ -56,12 +56,12 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '../../components/Toolti
  * @property {() => void} onDelete - Callback when delete is requested
  * @property {() => void} onColor - Callback when color change is requested
  */
- interface DataRowProps {
-  key: string; 
+interface DataRowProps {
+  key: string;
   number: number;
   disableEditing: boolean;
   description: string;
-  details?: { primary: string[]; secondary: string[] };
+  details?: { primary: string[]; secondary: string[]; description: string };
   isSelected?: boolean;
   onSelect?: () => void;
   isVisible: boolean;
@@ -74,11 +74,12 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '../../components/Toolti
   colorHex?: string;
   onColor: () => void;
   onDescribe?: (uid: string, description: string) => void;
+  measurementUID: string;
+  measurementDescription: string;
 }
 
-
 const DataRow: React.FC<DataRowProps> = ({
-  key, 
+  key,
   number,
   title,
   colorHex,
@@ -94,6 +95,8 @@ const DataRow: React.FC<DataRowProps> = ({
   isSelected = false,
   isVisible = true,
   disableEditing = false,
+  measurementUID,
+  measurementDescription
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const isTitleLong = title?.length > 25;
@@ -104,6 +107,10 @@ const DataRow: React.FC<DataRowProps> = ({
       rowRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, [isSelected]);
+
+  useEffect(()=>{
+    console.log(measurementDescription,"DETAILS")
+  },[])
 
   const [isDescribeModalOpen, setDescribeModalOpen] = useState(false);
 
@@ -124,7 +131,7 @@ const DataRow: React.FC<DataRowProps> = ({
         break;
       case 'Describe':
         setDescribeModalOpen(true);
-        console.log("MODAL OPEN")
+        console.log('MODAL OPEN');
         break;
     }
   };
@@ -335,12 +342,8 @@ const DataRow: React.FC<DataRowProps> = ({
       <DescribeModal
         isOpen={isDescribeModalOpen}
         onClose={() => setDescribeModalOpen(false)}
-        onSave={description => {
-          if (onDescribe) {
-            onDescribe(key, description);
-          }
-          setDescribeModalOpen(false);
-        }}
+        onDescribe={onDescribe}
+        uid={measurementUID}
       />
 
       {/* Details Section */}
@@ -356,6 +359,17 @@ const DataRow: React.FC<DataRowProps> = ({
           </div>
         </div>
       )}
+      <div className="ml-7 px-2 py-1">
+        {measurementDescription && measurementDescription.trim() !== '' ? (
+          <div className="text-secondary-foreground text-base">
+            <strong>Description:</strong> {measurementDescription}
+          </div>
+        ) : (
+          <div className="text-secondary-foreground text-base">
+            <strong>No description</strong>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

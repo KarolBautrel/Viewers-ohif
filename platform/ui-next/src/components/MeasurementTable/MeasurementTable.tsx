@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DataRow, PanelSection } from '../../index';
 import { createContext } from '../../lib/createContext';
@@ -32,12 +32,18 @@ const MeasurementTable = ({
   onToggleLocked,
   onRename,
   onColor,
+  onDescribe,
   title,
   children,
   disableEditing = false,
 }: MeasurementDataProps) => {
   const { t } = useTranslation('MeasurementTable');
   const amount = data.length;
+
+  useEffect(()=>{
+    data
+  })
+
 
   return (
     <MeasurementTableProvider
@@ -49,6 +55,7 @@ const MeasurementTable = ({
       onRename={onRename}
       onColor={onColor}
       disableEditing={disableEditing}
+      onDescribe = {onDescribe}
     >
       <PanelSection defaultOpen={true}>
         <PanelSection.Header className="bg-secondary-dark">
@@ -82,6 +89,7 @@ const Body = () => {
           key={item.uid}
           item={item}
           index={index}
+          measurementUID={item.uid}
         />
       ))}
     </div>
@@ -101,11 +109,13 @@ interface MeasurementItem {
   isVisible: boolean;
   isLocked: boolean;
   toolName: string;
+  description: string
 }
 
 interface RowProps {
   item: MeasurementItem;
   index: number;
+  measurementUID: string;
 }
 
 const Row = ({ item, index }: RowProps) => {
@@ -123,6 +133,7 @@ const Row = ({ item, index }: RowProps) => {
   return (
     <DataRow
       key={item.uid}
+      measurementUID={item.uid}
       description={item.label}
       number={index + 1}
       title={item.label}
@@ -138,6 +149,7 @@ const Row = ({ item, index }: RowProps) => {
       onToggleLocked={() => onToggleLocked(item.uid)}
       onRename={() => onRename(item.uid)}
       onDescribe={(uid, description) => onDescribe?.(uid, description)}
+      measurementDescription = {item?.description}
       // onColor={() => onColor(item.uid)}
     />
   );

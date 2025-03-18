@@ -30,7 +30,6 @@ const DescribeTree: React.FC<DescribeTreeProps> = ({ onSelect }) => {
       setCurrentNode(nextNode);
     } else {
       const finalSelection = newPath.join(" > ");
-      console.log("Final selection path:", finalSelection);
 
       onSelect(finalSelection);
 

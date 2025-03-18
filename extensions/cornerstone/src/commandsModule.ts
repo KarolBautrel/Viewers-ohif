@@ -200,7 +200,7 @@ function commandsModule({
     /** Describes measurements. */
     describeMeasurement: ({ uid, description }) => {
       if (uid) {
-        measurementServiceSource.addDescription(uid, description);
+        measurementService.addDescription(uid, description);
       }
     },
 
@@ -1640,6 +1640,9 @@ function commandsModule({
     },
     deleteActiveAnnotation: {
       commandFn: actions.deleteActiveAnnotation,
+    },
+    describeMeasurement: {
+      commandFn: actions.describeMeasurement,
     },
     undo: actions.undo,
     redo: actions.redo,

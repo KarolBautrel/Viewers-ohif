@@ -33,11 +33,13 @@ export default function PanelMeasurement({
   }, [displayMeasurements.length]);
 
   const bindCommand = (name: string | string[], options?) => {
-    return (uid: string) => {
-      commandsManager.run(name, { ...options, uid });
+    return (...args: any[]) => {
+      const [uid, description] = args;
+  
+      commandsManager.run(name, { ...options, uid, description });
     };
   };
-
+  
   const jumpToImage = bindCommand('jumpToMeasurement', { displayMeasurements });
   const removeMeasurement = bindCommand('removeMeasurement');
   const renameMeasurement = bindCommand(['jumpToMeasurement', 'renameMeasurement'], {

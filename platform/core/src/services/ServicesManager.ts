@@ -30,7 +30,7 @@ export default class ServicesManager {
       log.warn('Attempting to register a null/undefined service. Exiting early.');
       return;
     }
-
+    console.log("SERWIS REGISTERD", service)
     if (!service.name) {
       log.warn(`Service name not set. Exiting early.`);
       return;

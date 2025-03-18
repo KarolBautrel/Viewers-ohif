@@ -590,19 +590,37 @@ class MeasurementService extends PubSubService {
   }
 
 /**
- * Adds description to uuid-based measurement
- * 
+ * Adds (or updates) description for a given measurementUID.
  */
-  addDescription(measurementUID:string, description:string):void{
-    const measurement =
-      this.measurements.get(measurementUID) || this.unmappedMeasurements.get(measurementUID);
-      if (!measurementUID || !measurement) {
-        console.debug(`No uid provided, or unable to find measurement by uid.`);
-        return;
-      }
-      /// Need to figure out more about structure
-      console.log("got measurement", measurement, "Gonna work with it futher")
+ public addDescription(measurementUID: string, description: string): void {
+
+  const measurement =
+    this.measurements.get(measurementUID) || this.unmappedMeasurements.get(measurementUID);
+
+  if (!measurementUID || !measurement) {
+    console.debug(`No uid provided, or unable to find measurement by uid.`);
+    return;
   }
+
+  const updatedMeasurement = {
+    ...measurement,
+    description,
+    modifiedTimestamp: Math.floor(Date.now() / 1000),
+  };
+
+  this.measurements.set(measurementUID, updatedMeasurement);
+
+  this._broadcastEvent(this.EVENTS.MEASUREMENT_UPDATED, {
+    source: updatedMeasurement.source,
+    measurement: updatedMeasurement,
+    notYetUpdatedAtSource: false,
+  });
+
+  console.log(
+    `Measurement ${measurementUID} updated with new description: `,
+    updatedMeasurement.description,
+  );
+}
 
 
   /**

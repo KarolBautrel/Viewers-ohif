@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import DescribeTree from '../DescribeTree/index';
@@ -6,10 +6,12 @@ import DescribeTree from '../DescribeTree/index';
 interface DescribeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (description: string) => void;
+  onDescribe: (description:string, uid:string) => void;
+  uid:string
 }
 
-const DescribeModal: React.FC<DescribeModalProps> = ({ isOpen, onClose, onSave }) => {
+const DescribeModal: React.FC<DescribeModalProps> = ({ isOpen, onClose, onDescribe, uid }) => {
+
   return (
     <Dialog.Root
       open={isOpen}
@@ -21,7 +23,7 @@ const DescribeModal: React.FC<DescribeModalProps> = ({ isOpen, onClose, onSave }
           <div className="flex items-center justify-between">
             <Dialog.Title className="text-lg font-semibold">Add Description</Dialog.Title>
             <Dialog.Description className="mt-2 text-sm text-gray-600">
-              Please select relevant findings from the wizard below.
+              Please select relevant findings from the wizard below. {uid}
             </Dialog.Description>
             <Dialog.Close asChild>
               <button className="text-gray-500 hover:text-gray-800">
@@ -33,7 +35,7 @@ const DescribeModal: React.FC<DescribeModalProps> = ({ isOpen, onClose, onSave }
           <DescribeTree
             onSelect={fullPath => {
               console.log('Wizard completed path:', fullPath);
-              onSave(fullPath);
+              onDescribe(uid, fullPath);
             }}
           />
 
