@@ -1,5 +1,5 @@
 import { metaData, utilities } from '@cornerstonejs/core';
-
+import { sendMeasurementsToApi } from './api/apiMesurements';
 import OHIF, { DicomMetadataStore } from '@ohif/core';
 import dcmjs from 'dcmjs';
 import { adaptersSR } from '@cornerstonejs/adapters';
@@ -97,53 +97,18 @@ const commandsModule = (props: withAppTypes) => {
       additionalFindingTypes,
       options = {},
     }) => {
-      // Use the @cornerstonejs adapter for converting to/from DICOM
-      // But it is good enough for now whilst we only have cornerstone as a datasource.
-      log.info('[DICOMSR] storeMeasurements');
-      console.log(measurementData)
-      if (!dataSource || !dataSource.store || !dataSource.store.dicom) {
-        log.error('[DICOMSR] datasource has no dataSource.store.dicom endpoint!');
-        return Promise.reject({});
-      }
+      OHIF.log.info('[REST] storeMeasurements (custom REST endpoint)');
+      console.log('Measurement Data wysyłane do backendu:', measurementData);
 
       try {
-        const naturalizedReport = _generateReport(measurementData, additionalFindingTypes, options);
-
-        const { StudyInstanceUID, ContentSequence } = naturalizedReport;
-        // The content sequence has 5 or more elements, of which
-        // the `[4]` element contains the annotation data, so this is
-        // checking that there is some annotation data present.
-        if (!ContentSequence?.[4].ContentSequence?.length) {
-          console.log('naturalizedReport missing imaging content', naturalizedReport);
-          throw new Error('Invalid report, no content');
-        }
-
-        const onBeforeDicomStore = customizationService.getCustomization('onBeforeDicomStore');
-
-        let dicomDict;
-        if (typeof onBeforeDicomStore === 'function') {
-          dicomDict = onBeforeDicomStore({ dicomDict, measurementData, naturalizedReport });
-        }
-
-        await dataSource.store.dicom(naturalizedReport, null, dicomDict);
-
-        if (StudyInstanceUID) {
-          dataSource.deleteStudyMetadataPromise(StudyInstanceUID);
-        }
-
-        // The "Mode" route listens for DicomMetadataStore changes
-        // When a new instance is added, it listens and
-        // automatically calls makeDisplaySets
-        DicomMetadataStore.addInstances([naturalizedReport], true);
-
-        return naturalizedReport;
+        const result = await sendMeasurementsToApi(measurementData);
+        OHIF.log.info('[REST] storeMeasurements – odpowiedź z backendu:', result);
+        return result;
       } catch (error) {
-        console.warn(error);
-        log.error(`[DICOMSR] Error while saving the measurements: ${error.message}`);
-        throw new Error(error.message || 'Error while saving the measurements.');
+        OHIF.log.error(`[REST] Error podczas wysyłania measurements: ${error.message}`);
+        throw new Error(error.message || 'Error while sending the measurements.');
       }
     },
-
     /**
      * Loads measurements by hydrating and loading the SR for the given display set instance UID
      * and displays it in the active viewport.
