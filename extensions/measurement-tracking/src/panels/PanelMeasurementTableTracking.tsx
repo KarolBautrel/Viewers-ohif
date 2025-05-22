@@ -65,8 +65,8 @@ function PanelMeasurementTableTracking({
                     });
                   }}
                 >
-                  <Icons.Add />
-                  Create SR
+                  <Icons.Database />
+                 Save to Database
                 </Button>
                 <Button
                   size="sm"

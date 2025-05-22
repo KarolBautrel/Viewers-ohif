@@ -100,7 +100,7 @@ const commandsModule = (props: withAppTypes) => {
       // Use the @cornerstonejs adapter for converting to/from DICOM
       // But it is good enough for now whilst we only have cornerstone as a datasource.
       log.info('[DICOMSR] storeMeasurements');
-
+      console.log(measurementData)
       if (!dataSource || !dataSource.store || !dataSource.store.dicom) {
         log.error('[DICOMSR] datasource has no dataSource.store.dicom endpoint!');
         return Promise.reject({});

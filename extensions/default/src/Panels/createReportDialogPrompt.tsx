@@ -1,7 +1,7 @@
 import PROMPT_RESPONSES from '../utils/_shared/PROMPT_RESPONSES';
 
 export default function CreateReportDialogPrompt({
-  title = 'Create Report',
+  title = 'Save to Database',
   extensionManager,
   servicesManager,
 }): Promise<{
