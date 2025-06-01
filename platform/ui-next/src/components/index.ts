@@ -80,6 +80,7 @@ import { Onboarding } from './Onboarding';
 import { DoubleSlider } from './DoubleSlider';
 import { DataRow } from './DataRow';
 import { MeasurementTable } from './MeasurementTable';
+import {DescribeTree} from "./DescribeTree"
 import { SegmentationTable, useSegmentationTableContext } from './SegmentationTable';
 import { Toaster, toast } from './Sonner';
 import { StudySummary } from './StudySummary';
@@ -237,4 +238,5 @@ export {
   UserPreferencesModal,
   FooterAction,
   ToolSettings,
+  DescribeTree
 };

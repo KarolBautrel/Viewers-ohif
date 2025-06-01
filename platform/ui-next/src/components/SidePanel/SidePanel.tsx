@@ -460,6 +460,24 @@ const SidePanel = ({
       className={classnames(className, baseClasses)}
       style={style}
     >
+      {/* TEST BADGE */}
+    <div
+      style={{
+        background: '#ff1f44',
+        color: '#fff',
+        fontWeight: 700,
+        fontSize: 18,
+        padding: 10,
+        textAlign: 'center',
+        letterSpacing: 2,
+        marginBottom: 6,
+        borderRadius: 8,
+        border: '2px dashed #fff',
+        zIndex: 9999,
+      }}
+    >
+      TEST PANEL
+    </div>
       {panelOpen ? (
         <>
           {getOpenStateComponent()}

@@ -130,7 +130,7 @@ const DataRow: React.FC<DataRowProps> = ({
         onColor();
         break;
       case 'Describe':
-        setDescribeModalOpen(true);
+        if (onDescribe) onDescribe(measurementUID, '');
         console.log('MODAL OPEN');
         break;
     }
@@ -339,12 +339,12 @@ const DataRow: React.FC<DataRowProps> = ({
           )}
         </div>
       </div>
-      <DescribeModal
+      {/* <DescribeModal
         isOpen={isDescribeModalOpen}
         onClose={() => setDescribeModalOpen(false)}
         onDescribe={onDescribe}
         uid={measurementUID}
-      />
+      /> */}
 
       {/* Details Section */}
       {details && (details.primary?.length > 0 || details.secondary?.length > 0) && (
