@@ -192,6 +192,7 @@ function ViewerLayout({
                     isExpanded={!rightPanelClosedState}
                     servicesManager={servicesManager}
                     {...rightPanelProps}
+                    
                   />
                 </ResizablePanel>
               </>
