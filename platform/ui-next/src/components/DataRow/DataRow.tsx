@@ -75,7 +75,7 @@ interface DataRowProps {
   onColor: () => void;
   onDescribe?: (uid: string, description: string) => void;
   measurementUID: string;
-  measurementDescription: string;
+  measurementDescription: Record<string, string>;
 }
 
 const DataRow: React.FC<DataRowProps> = ({
@@ -96,7 +96,7 @@ const DataRow: React.FC<DataRowProps> = ({
   isVisible = true,
   disableEditing = false,
   measurementUID,
-  measurementDescription
+  measurementDescription,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const isTitleLong = title?.length > 25;
@@ -108,9 +108,9 @@ const DataRow: React.FC<DataRowProps> = ({
     }
   }, [isSelected]);
 
-  useEffect(()=>{
-    console.log(measurementDescription,"DETAILS")
-  },[])
+  useEffect(() => {
+    console.log(measurementDescription, 'DETAILS');
+  }, []);
 
   const [isDescribeModalOpen, setDescribeModalOpen] = useState(false);
 
@@ -360,13 +360,28 @@ const DataRow: React.FC<DataRowProps> = ({
         </div>
       )}
       <div className="ml-7 px-2 py-1">
-        {measurementDescription && measurementDescription.trim() !== '' ? (
+        {Array.isArray(measurementDescription?.description) &&
+        measurementDescription.description.length > 0 ? (
           <div className="text-secondary-foreground text-base">
-            <strong>Description:</strong> {measurementDescription}
+            <strong>Description:</strong> {measurementDescription.description.join(' → ')}
           </div>
         ) : (
           <div className="text-secondary-foreground text-base">
             <strong>No description</strong>
+          </div>
+        )}
+      </div>
+
+      {/* Localization */}
+      <div className="ml-7 px-2 py-1">
+        {Array.isArray(measurementDescription?.localization) &&
+        measurementDescription.localization.length > 0 ? (
+          <div className="text-secondary-foreground text-base">
+            <strong>Localization:</strong> {measurementDescription.localization.join(' → ')}
+          </div>
+        ) : (
+          <div className="text-secondary-foreground text-base">
+            <strong>No localization</strong>
           </div>
         )}
       </div>

@@ -592,7 +592,7 @@ class MeasurementService extends PubSubService {
 /**
  * Adds (or updates) description for a given measurementUID.
  */
- public addDescription(measurementUID: string, description: string): void {
+ public addDescription(measurementUID: string, description: Record<string,string>): void {
 
   const measurement =
     this.measurements.get(measurementUID) || this.unmappedMeasurements.get(measurementUID);
