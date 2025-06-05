@@ -1,8 +1,9 @@
 export interface Suggestion {
     name: string;
-    category: 'wnioski' | 'rozpoznanie' | 'objaw';
+    type: 'wnioski' | 'rozpoznanie' | 'objaw';
     weight?: number;
     source?: string;
+    uuid?:string
   }
   
   export interface Wniosek {

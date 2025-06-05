@@ -2,40 +2,12 @@ import React, { useState, useEffect } from 'react';
 import FeatureTree from './components/FeatureTree';
 import LocationTree from './components/LocationTree';
 import type { CechaNode } from './types';
-import MultiSelect from '../MultiSelect/MultiSelect';
-
-export const DANE_ZE_SKIEROWANIA = [
-  "nikotynizm",
-  "nowotwór złośliwy w wywiadzie",
-  "pacjent w immunosupresji",
-  "zakażenie wirusem HIV/AIDS",
-  "stan po przeszczepie allogenicznym narządu/szpiku",
-  "czynniki ryzyka",
-  "kontrola po 3 miesiącach",
-  "kontrola po roku",
-  "nikotynizm",
-  "kontrola po >600 dniach",
-  "kontrola po 400-600 dniach",
-  "kontrola po <=400 dniach",
-  "kontrola po >400 dniach",
-  "kontrola po 4 latach ",
-  "kontrola po 3 miesiącach",
-  "badanie kontrolne",
-  "kontrola po 3=>=6 miesiącach",
-];
 
 export const OBJAW_RADIOLOGICZNY = [
   'guzek/obszar miąższu płuca typu matowej szyby',
   'guzek miąższu płuca',
   'mnogie guzki płuca',
   'częściowo lity guzek miąższu płuca',
-];
-
-export const WARUNKI_BADANIA = [
-  'warunek 1',
-  'warunek 2',
-  'warunek 3',
-  'warunek 4',
 ];
 
 const API_URL = 'http://localhost:8001';
@@ -45,22 +17,22 @@ export default function DescribeTree({
   measurements,
   uid,
   referralData,
-  circumstancesData
+  circumstancesData,
 }: {
   onSelect: (desc: Record<string, any>) => void;
   onCancel: () => void;
   measurements: any[];
   uid: string;
   referralData: string[];
-  circumstancecData: string[]
+  circumstancecData: string[];
 }) {
   const [step, setStep] = useState<'form' | 'locations' | 'features'>('form');
   const [loading, setLoading] = useState(false);
   const [featureData, setFeatureData] = useState<CechaNode[] | null>(null);
   const [locData, setLocData] = useState<any[] | null>(null);
   const [describeResult, setDescribeResult] = useState<{
-    localization: string[] | null,
-    description: string | null
+    localization: string[] | null;
+    description: string | null;
   }>({
     localization: null,
     description: null,
@@ -153,6 +125,7 @@ export default function DescribeTree({
   }
 
   function handleFeatureDone(descriptionList: string[]) {
+    console.log(descriptionList);
     setDescribeResult(r => {
       const full = { ...r, description: descriptionList };
       onSelect(full);
@@ -161,7 +134,7 @@ export default function DescribeTree({
   }
   return (
     <div className="flex min-h-screen flex-col items-center justify-start bg-[#090C2A] py-6">
-<div className="relative flex w-[342px] flex-col items-start gap-2 rounded-lg bg-[#090C2A] px-4 pt-4 pb-6 shadow-[0px_1px_2px_rgba(0,0,0,0.10),0px_1px_3px_rgba(0,0,0,0.05)] max-h-screen overflow-y-auto">
+      <div className="relative flex max-h-screen w-[342px] flex-col items-start gap-2 overflow-y-auto rounded-lg bg-[#090C2A] px-4 pt-4 pb-6 shadow-[0px_1px_2px_rgba(0,0,0,0.10),0px_1px_3px_rgba(0,0,0,0.05)]">
         <div className="mb-6 flex w-[310px] flex-row items-center justify-between">
           <span className="font-roboto text-[20px] font-semibold text-[#C9C9C9]">Opisz pomiar</span>
           <button
@@ -175,11 +148,10 @@ export default function DescribeTree({
 
         {/* Panel z wynikiem pomiaru */}
         <div className="mb-2 flex w-[310px] justify-center">
-  <span className="font-roboto rounded-2xl bg-[rgba(134,142,150,0.15)] px-3 py-1 text-[16px] text-white">
-    {displayValue ? `${displayValue} ${displayUnit}` : '—'}
-  </span>
-</div>
-
+          <span className="font-roboto rounded-2xl bg-[rgba(134,142,150,0.15)] px-3 py-1 text-[16px] text-white">
+            {displayValue ? `${displayValue} ${displayUnit}` : '—'}
+          </span>
+        </div>
 
         {step === 'form' && (
           <form
@@ -187,10 +159,12 @@ export default function DescribeTree({
             onSubmit={e => e.preventDefault()}
           >
             <div className="flex w-full flex-row items-center gap-2">
-              <span className="font-roboto text-[14px] font-semibold text-[#C9C9C9]">Lokalizacja</span>
+              <span className="font-roboto text-[14px] font-semibold text-[#C9C9C9]">
+                Lokalizacja
+              </span>
               <button
                 type="button"
-                className="ml-auto rounded bg-[#348CFD] px-3 py-1 text-white font-semibold text-sm hover:bg-[#225BA4]"
+                className="ml-auto rounded bg-[#348CFD] px-3 py-1 text-sm font-semibold text-white hover:bg-[#225BA4]"
                 onClick={fetchLocations}
                 disabled={loading}
               >
@@ -198,7 +172,7 @@ export default function DescribeTree({
               </button>
             </div>
             {describeResult.localization && (
-              <div className="mb-2 text-[#C9C9C9] text-sm">
+              <div className="mb-2 text-sm text-[#C9C9C9]">
                 Wybrano: {describeResult.localization.join(' ➝ ')}
               </div>
             )}
@@ -218,11 +192,16 @@ export default function DescribeTree({
                   >
                     <option value="">Pick</option>
                     {OBJAW_RADIOLOGICZNY.map(opt => (
-                      <option key={opt} value={opt}>{opt}</option>
+                      <option
+                        key={opt}
+                        value={opt}
+                      >
+                        {opt}
+                      </option>
                     ))}
                   </select>
                 </label>
-            
+
                 <button
                   type="button"
                   className="mt-2 h-10 w-full rounded bg-[#348CFD] px-4 py-2 font-semibold text-white transition hover:bg-[#225BA4]"
@@ -240,7 +219,7 @@ export default function DescribeTree({
         {step === 'locations' && locData && (
           <LocationTree
             data={locData}
-            onDone={selectedList => handleLocalizationDone(selectedList.map(n => n.name))}
+            onDone={selectedList => handleLocalizationDone(selectedList)}
             onBack={() => setStep('form')}
           />
         )}
@@ -249,7 +228,7 @@ export default function DescribeTree({
         {step === 'features' && featureData && (
           <FeatureTree
             data={featureData}
-            onDone={selectedList => handleFeatureDone(selectedList.map(n => n.name))}
+            onDone={selectedList => handleFeatureDone(selectedList)}
             onBack={() => setStep('form')}
           />
         )}

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-
+import React, { useState } from 'react';
+import { cleanChoice } from '../helpers';
 export default function LocationTree({
   data,
   onDone,
@@ -11,9 +11,10 @@ export default function LocationTree({
 }) {
   const [selectedPath, setSelectedPath] = useState<any[]>([]);
 
-  const nodes = selectedPath.length === 0
-    ? data
-    : selectedPath[selectedPath.length - 1].children_lokalizacja || [];
+  const nodes =
+    selectedPath.length === 0
+      ? data
+      : selectedPath[selectedPath.length - 1].children_lokalizacja || [];
 
   function handleSelect(node: any) {
     setSelectedPath([...selectedPath, node]);
@@ -22,9 +23,10 @@ export default function LocationTree({
   function handleBackOneLevel() {
     setSelectedPath(selectedPath.slice(0, -1));
   }
-
   function handleConfirm() {
-    onDone(selectedPath);
+    const cleanedSelectedPath = cleanChoice(selectedPath);
+
+    onDone(cleanedSelectedPath);
   }
 
   function handleReset() {
@@ -33,26 +35,24 @@ export default function LocationTree({
   }
 
   return (
-    <div className="flex flex-col gap-4 w-full">
-     <div className="flex flex-wrap items-center gap-2">
-  {selectedPath.map((node, idx) => (
-    <React.Fragment key={node.element_id_property}>
-      <span className="rounded-2xl bg-[#23274a] px-3 py-1 text-sm font-medium text-white">
-        {node.name}
-      </span>
-      {idx < selectedPath.length - 1 && (
-        <span className="text-[#C9C9C9] text-sm">→</span>
-      )}
-    </React.Fragment>
-  ))}
-</div>
+    <div className="flex w-full flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-2">
+        {selectedPath.map((node, idx) => (
+          <React.Fragment key={node.element_id_property}>
+            <span className="rounded-2xl bg-[#23274a] px-3 py-1 text-sm font-medium text-white">
+              {node.name}
+            </span>
+            {idx < selectedPath.length - 1 && <span className="text-sm text-[#C9C9C9]">→</span>}
+          </React.Fragment>
+        ))}
+      </div>
 
       <div className="flex flex-col gap-2">
         {nodes.length > 0 ? (
           nodes.map(node => (
             <button
               key={node.element_id_property}
-              className="bg-[#23274a] hover:bg-[#2d314f] text-white rounded px-3 py-2 font-semibold text-sm"
+              className="rounded bg-[#23274a] px-3 py-2 text-sm font-semibold text-white hover:bg-[#2d314f]"
               onClick={() => handleSelect(node)}
             >
               {node.name}
@@ -62,17 +62,17 @@ export default function LocationTree({
           <div className="text-[#9FA6B2]">To już najniższy poziom drzewa.</div>
         )}
       </div>
-      <div className="flex flex-row gap-2 mt-3">
+      <div className="mt-3 flex flex-row gap-2">
         {selectedPath.length > 0 && (
           <>
             <button
-              className="flex-1 bg-[#348CFD] text-white py-2 rounded"
+              className="flex-1 rounded bg-[#348CFD] py-2 text-white"
               onClick={handleConfirm}
             >
               Zatwierdź
             </button>
             <button
-              className="flex-1 bg-[#23274a] text-[#C9C9C9] py-2 rounded"
+              className="flex-1 rounded bg-[#23274a] py-2 text-[#C9C9C9]"
               onClick={handleBackOneLevel}
             >
               Wstecz
@@ -80,7 +80,7 @@ export default function LocationTree({
           </>
         )}
         <button
-          className="flex-1 bg-[#23274a] text-[#C9C9C9] py-2 rounded"
+          className="flex-1 rounded bg-[#23274a] py-2 text-[#C9C9C9]"
           onClick={handleReset}
         >
           Reset

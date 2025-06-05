@@ -102,18 +102,6 @@ const DataRow: React.FC<DataRowProps> = ({
   const isTitleLong = title?.length > 25;
   const rowRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (isSelected && rowRef.current) {
-      rowRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }, [isSelected]);
-
-  useEffect(() => {
-    console.log(measurementDescription, 'DETAILS');
-  }, []);
-
-  const [isDescribeModalOpen, setDescribeModalOpen] = useState(false);
-
   const handleAction = (action: string, e: React.MouseEvent) => {
     e.stopPropagation();
     switch (action) {
@@ -131,7 +119,6 @@ const DataRow: React.FC<DataRowProps> = ({
         break;
       case 'Describe':
         if (onDescribe) onDescribe(measurementUID, '');
-        console.log('MODAL OPEN');
         break;
     }
   };
@@ -363,7 +350,8 @@ const DataRow: React.FC<DataRowProps> = ({
         {Array.isArray(measurementDescription?.description) &&
         measurementDescription.description.length > 0 ? (
           <div className="text-secondary-foreground text-base">
-            <strong>Description:</strong> {measurementDescription.description.join(' → ')}
+            <strong>Description:</strong>{' '}
+            {measurementDescription.description.map(d => d.name).join(' → ')}
           </div>
         ) : (
           <div className="text-secondary-foreground text-base">
@@ -377,7 +365,8 @@ const DataRow: React.FC<DataRowProps> = ({
         {Array.isArray(measurementDescription?.localization) &&
         measurementDescription.localization.length > 0 ? (
           <div className="text-secondary-foreground text-base">
-            <strong>Localization:</strong> {measurementDescription.localization.join(' → ')}
+            <strong>Localization:</strong>{' '}
+            {measurementDescription.localization.map(d => d.name).join(' → ')}
           </div>
         ) : (
           <div className="text-secondary-foreground text-base">
