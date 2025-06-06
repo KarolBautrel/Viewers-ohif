@@ -1,17 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 
-// props: options (array string), value (array string), onChange (array string)
 function MultiSelect({ options, value, onChange }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const ref = useRef();
 
-  // filtruj opcje po wpisywaniu
   const filtered = options.filter(opt =>
     opt.toLowerCase().includes(query.toLowerCase())
   );
 
-  // zamykaj dropdown klikając poza
   useEffect(() => {
     function handle(e) {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);

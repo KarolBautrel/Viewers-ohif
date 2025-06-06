@@ -31,8 +31,8 @@ export default function DescribeTree({
   const [featureData, setFeatureData] = useState<CechaNode[] | null>(null);
   const [locData, setLocData] = useState<any[] | null>(null);
   const [describeResult, setDescribeResult] = useState<{
-    localization: string[] | null;
-    description: string | null;
+    localization: Record<any, any>| null;
+    description: Record<any,any> | null;
   }>({
     localization: null,
     description: null,
@@ -119,12 +119,12 @@ export default function DescribeTree({
     setError(null);
   }
 
-  function handleLocalizationDone(selectedPath: string[]) {
+  function handleLocalizationDone(selectedPath: Record<any, any>) {
     setDescribeResult(r => ({ ...r, localization: selectedPath }));
     setStep('form');
   }
 
-  function handleFeatureDone(descriptionList: string[]) {
+  function handleFeatureDone(descriptionList: Record<any,any>) {
     console.log(descriptionList);
     setDescribeResult(r => {
       const full = { ...r, description: descriptionList };
@@ -146,7 +146,6 @@ export default function DescribeTree({
           </button>
         </div>
 
-        {/* Panel z wynikiem pomiaru */}
         <div className="mb-2 flex w-[310px] justify-center">
           <span className="font-roboto rounded-2xl bg-[rgba(134,142,150,0.15)] px-3 py-1 text-[16px] text-white">
             {displayValue ? `${displayValue} ${displayUnit}` : '—'}
@@ -173,7 +172,7 @@ export default function DescribeTree({
             </div>
             {describeResult.localization && (
               <div className="mb-2 text-sm text-[#C9C9C9]">
-                Wybrano: {describeResult.localization.join(' ➝ ')}
+                Wybrano: {describeResult.localization.map(d => d.name).join(' → ')}
               </div>
             )}
 
@@ -224,7 +223,6 @@ export default function DescribeTree({
           />
         )}
 
-        {/* --- WIDOK WYBORU CECH --- */}
         {step === 'features' && featureData && (
           <FeatureTree
             data={featureData}
