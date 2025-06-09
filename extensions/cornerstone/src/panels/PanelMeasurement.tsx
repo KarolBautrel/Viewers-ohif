@@ -115,6 +115,43 @@ export default function PanelMeasurement({
     setUserHasSelected(true); 
   }
 
+  const hasAnyDescriptions = displayMeasurements.some(
+    m => !!m.description 
+  );
+
+  function clearAllDescriptions() {
+    displayMeasurements.forEach(m => {
+      if (m.description) {
+        measurementService.update(m.uid, {
+          ...m,
+          description: {
+            ...m.description,
+            description: [],
+            wnioski: [],
+            rozpoznania: [],
+          },
+        });
+      }
+    });
+  }
+  function handleOpenModalWithConfirm() {
+    if (hasAnyDescriptions) {
+      if (
+        window.confirm(
+          'Zmiana danych ze skierowania lub warunków spowoduje usunięcie wszystkich opisów pomiarów. Kontynuować?'
+        )
+      ) {
+        clearAllDescriptions();
+        setReferralData([]);
+        setCircumstancesData([]);
+        setUserHasSelected(false);
+        setModalOpen(true);
+      }
+      // jeśli NIE - nie rób nic
+    } else {
+      setModalOpen(true);
+    }
+  } 
   return (
     <>
       {/* Modal z wyborem danych wyjściowych */}
@@ -155,7 +192,9 @@ export default function PanelMeasurement({
           <ReferralDataSelector
             referralData={referralData}
             circumstancesData={circumstancesData}
-            onOpenModal={() => setModalOpen(true)}
+            // OLD: onOpenModal={() => setModalOpen(true)}
+            // NEW:
+            onOpenModal={handleOpenModalWithConfirm}
           />
 
           <MeasurementTable

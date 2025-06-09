@@ -33,7 +33,7 @@ export function ReferralDataSelector({
           onClick={onOpenModal}
           type="button"
         >
-        Podaj Dane wejsciowe
+        Modyfikuj dane wejsciowe
         </button>
       </div>
       <div className="mt-3">

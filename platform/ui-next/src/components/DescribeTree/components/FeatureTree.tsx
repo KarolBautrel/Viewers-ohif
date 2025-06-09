@@ -26,7 +26,7 @@ export default function FeatureTree({
     (node.sugeruje_wnioski ?? []).forEach(w =>
       wnioski.push({
         name: w.name,
-        id: w.uuid || w.element_id_property || w.id,
+        uuid: w.uuid || w.element_id_property || w.id,
         type: 'wnioski',
         weight: w.weight ?? 1,
       })
@@ -34,7 +34,7 @@ export default function FeatureTree({
     (node.sugeruje_rozpoznanie ?? []).forEach(r =>
       rozpoznania.push({
         name: r.name,
-        id: r.uuid || r.element_id_property || r.id,
+        uuid: r.uuid || r.element_id_property || r.id,
         type: 'rozpoznanie',
         weight: r.weight ?? 1,
       })
@@ -42,7 +42,7 @@ export default function FeatureTree({
     (node.suggested_rozpoznanie ?? []).forEach(r =>
       rozpoznania.push({
         name: r.name,
-        id: r.uuid || r.element_id_property || r.id,
+        uuid: r.uuid || r.element_id_property || r.id,
         type: 'rozpoznanie',
         weight: r.weight ?? 1,
       })
@@ -51,7 +51,7 @@ export default function FeatureTree({
       (d.sugeruje_wnioski ?? []).forEach(w =>
         wnioski.push({
           name: w.name,
-          id: w.uuid || w.element_id_property || w.id,
+          uuid: w.uuid || w.element_id_property || w.id,
           type: 'wnioski',
           weight: w.weight ?? 1,
         })
@@ -59,7 +59,7 @@ export default function FeatureTree({
       (d.sugeruje_rozpoznanie ?? []).forEach(r =>
         rozpoznania.push({
           name: r.name,
-          id: r.uuid || r.element_id_property || r.id,
+          uuid: r.uuid || r.element_id_property || r.id,
           type: 'rozpoznanie',
           weight: r.weight ?? 1,
         })
@@ -90,9 +90,9 @@ export default function FeatureTree({
   }
 
   function finishSelection() {
-    const description = selected.map((node, idx) => ({
+    const cechy = selected.map((node, idx) => ({
       name: node.name,
-      id: node.uuid || node.element_id_property || node.id,
+      uuid: node.uuid || node.element_id_property || node.id,
       type: node.type || 'cecha',
       step: idx + 1,
     }));
@@ -100,7 +100,7 @@ export default function FeatureTree({
     const { wnioski, rozpoznania } = extractFinalSuggestions(currentNode);
 
     onDone({
-      description,
+      cechy,
       wnioski,
       rozpoznania,
     });

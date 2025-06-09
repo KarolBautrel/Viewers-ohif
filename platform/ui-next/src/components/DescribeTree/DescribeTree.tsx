@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import CircumstancesTree from './components/CircumstancesTree';
 import FeatureTree from './components/FeatureTree';
 import LocationTree from './components/LocationTree';
 import type { CechaNode } from './types';
@@ -11,6 +12,7 @@ export const OBJAW_RADIOLOGICZNY = [
 ];
 
 const API_URL = 'http://localhost:8001';
+
 export default function DescribeTree({
   onSelect,
   onCancel,
@@ -26,20 +28,22 @@ export default function DescribeTree({
   referralData: string[];
   circumstancecData: string[];
 }) {
-  const [step, setStep] = useState<'form' | 'locations' | 'features'>('form');
-  const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<'circumstances' | 'form' | 'features' | 'locations'>('circumstances');
   const [featureData, setFeatureData] = useState<CechaNode[] | null>(null);
   const [locData, setLocData] = useState<any[] | null>(null);
   const [describeResult, setDescribeResult] = useState<{
-    localization: Record<any, any>| null;
-    description: Record<any,any> | null;
+    circumstances: any[] | null;
+    localization: Record<any, any> | null;
+    description: Record<any, any> | null;
   }>({
+    circumstances: null,
     localization: null,
     description: null,
   });
 
   const [findingName, setFindingName] = useState<string>('');
   const [size, setSize] = useState<string>('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const currentMeasurement = measurements?.find(m => m.uid === uid);
@@ -67,6 +71,13 @@ export default function DescribeTree({
     }
   }
 
+  // 1. Najpierw CircumstancesTree
+  function handleCircumstancesDone(selectedCircumstances: any[]) {
+    setDescribeResult(r => ({ ...r, circumstances: selectedCircumstances }));
+    setStep('form');
+  }
+
+  // 2. Potem FORMULARZ wyboru objawu radiologicznego i pobieranie cech
   async function fetchFeatures() {
     setLoading(true);
     setError(null);
@@ -93,6 +104,7 @@ export default function DescribeTree({
     }
   }
 
+  // 3. Po cechach lokalizacja
   async function fetchLocations() {
     setLoading(true);
     setError(null);
@@ -110,28 +122,33 @@ export default function DescribeTree({
   }
 
   function resetAll() {
-    setStep('form');
+    setStep('circumstances');
     setFeatureData(null);
     setLocData(null);
     setFindingName('');
     setSize('');
-    setDescribeResult({ localization: null, description: null });
+    setDescribeResult({ circumstances: null, localization: null, description: null });
     setError(null);
+  }
+
+  function handleFeatureDone(descriptionList: Record<any, any>) {
+    setDescribeResult(r => {
+      const full = { ...r, description: descriptionList };
+      return full;
+    });
+    fetchLocations();
   }
 
   function handleLocalizationDone(selectedPath: Record<any, any>) {
     setDescribeResult(r => ({ ...r, localization: selectedPath }));
-    setStep('form');
-  }
-
-  function handleFeatureDone(descriptionList: Record<any,any>) {
-    console.log(descriptionList);
-    setDescribeResult(r => {
-      const full = { ...r, description: descriptionList };
-      onSelect(full);
-      return full;
+    onSelect({
+      ...describeResult,
+      localization: selectedPath,
     });
   }
+
+  // -- UI --
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-start bg-[#090C2A] py-6">
       <div className="relative flex max-h-screen w-[342px] flex-col items-start gap-2 overflow-y-auto rounded-lg bg-[#090C2A] px-4 pt-4 pb-6 shadow-[0px_1px_2px_rgba(0,0,0,0.10),0px_1px_3px_rgba(0,0,0,0.05)]">
@@ -152,6 +169,13 @@ export default function DescribeTree({
           </span>
         </div>
 
+        {step === 'circumstances' && (
+          <CircumstancesTree
+            onDone={handleCircumstancesDone}
+            onBack={onCancel}
+          />
+        )}
+
         {step === 'form' && (
           <form
             className="flex w-[310px] flex-col gap-4"
@@ -159,75 +183,56 @@ export default function DescribeTree({
           >
             <div className="flex w-full flex-row items-center gap-2">
               <span className="font-roboto text-[14px] font-semibold text-[#C9C9C9]">
-                Lokalizacja
+                Objaw radiologiczny
               </span>
-              <button
-                type="button"
-                className="ml-auto rounded bg-[#348CFD] px-3 py-1 text-sm font-semibold text-white hover:bg-[#225BA4]"
-                onClick={fetchLocations}
-                disabled={loading}
-              >
-                {describeResult.localization ? 'Zmień' : 'Wybierz'}
-              </button>
             </div>
-            {describeResult.localization && (
-              <div className="mb-2 text-sm text-[#C9C9C9]">
-                Wybrano: {describeResult.localization.map(d => d.name).join(' → ')}
-              </div>
-            )}
-
-            {describeResult.localization && (
-              <>
-                <label className="flex w-full flex-col gap-1">
-                  <span className="font-roboto mb-0.5 flex flex-row items-center text-[14px] font-semibold text-[#C9C9C9]">
-                    Objaw radiologiczny
-                    <span className="ml-1 text-[#F03E3E]">*</span>
-                  </span>
-                  <select
-                    className="font-roboto h-10 w-full rounded border border-[#225BA4] bg-[#0B0F2B] px-3 text-[16px] text-white outline-none"
-                    value={findingName}
-                    onChange={e => setFindingName(e.target.value)}
-                    required
+            <label className="flex w-full flex-col gap-1">
+              <span className="font-roboto mb-0.5 flex flex-row items-center text-[14px] font-semibold text-[#C9C9C9]">
+                Wybierz objaw
+                <span className="ml-1 text-[#F03E3E]">*</span>
+              </span>
+              <select
+                className="font-roboto h-10 w-full rounded border border-[#225BA4] bg-[#0B0F2B] px-3 text-[16px] text-white outline-none"
+                value={findingName}
+                onChange={e => setFindingName(e.target.value)}
+                required
+              >
+                <option value="">Pick</option>
+                {OBJAW_RADIOLOGICZNY.map(opt => (
+                  <option
+                    key={opt}
+                    value={opt}
                   >
-                    <option value="">Pick</option>
-                    {OBJAW_RADIOLOGICZNY.map(opt => (
-                      <option
-                        key={opt}
-                        value={opt}
-                      >
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <button
-                  type="button"
-                  className="mt-2 h-10 w-full rounded bg-[#348CFD] px-4 py-2 font-semibold text-white transition hover:bg-[#225BA4]"
-                  onClick={fetchFeatures}
-                  disabled={!findingName || loading}
-                >
-                  {loading ? '...' : 'Pobierz cechy'}
-                </button>
-              </>
-            )}
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              className="mt-2 h-10 w-full rounded bg-[#348CFD] px-4 py-2 font-semibold text-white transition hover:bg-[#225BA4]"
+              onClick={fetchFeatures}
+              disabled={!findingName || loading}
+            >
+              {loading ? '...' : 'Pobierz cechy'}
+            </button>
             {error && <span className="text-sm text-red-400">{error}</span>}
           </form>
-        )}
-
-        {step === 'locations' && locData && (
-          <LocationTree
-            data={locData}
-            onDone={selectedList => handleLocalizationDone(selectedList)}
-            onBack={() => setStep('form')}
-          />
         )}
 
         {step === 'features' && featureData && (
           <FeatureTree
             data={featureData}
-            onDone={selectedList => handleFeatureDone(selectedList)}
+            onDone={handleFeatureDone}
             onBack={() => setStep('form')}
+          />
+        )}
+
+        {step === 'locations' && locData && (
+          <LocationTree
+            data={locData}
+            onDone={handleLocalizationDone}
+            onBack={() => setStep('features')}
           />
         )}
       </div>

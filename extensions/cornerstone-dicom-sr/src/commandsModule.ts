@@ -98,8 +98,6 @@ const commandsModule = (props: withAppTypes) => {
       options = {},
     }) => {
       OHIF.log.info('[REST] storeMeasurements (custom REST endpoint)');
-      //console.log('Measurement Data wysyłane do backendu:', measurementData);
-      console.log(JSON.stringify(measurementData))
     
       try {
         const response = await fetch('http://localhost:8001/api/neo/measurement/create', {

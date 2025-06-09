@@ -17,6 +17,7 @@ export default function LocationTree({
       : selectedPath[selectedPath.length - 1].children_lokalizacja || [];
 
   function handleSelect(node: any) {
+    console.log(node)
     setSelectedPath([...selectedPath, node]);
   }
 

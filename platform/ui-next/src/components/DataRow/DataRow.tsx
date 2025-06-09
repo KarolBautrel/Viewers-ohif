@@ -129,7 +129,6 @@ const DataRow: React.FC<DataRowProps> = ({
     return txt.value;
   };
 
-  useEffect(()=>{console.log(measurementDescription)},[])
 
   const renderDetailText = (text: string, indent: number = 0) => {
     const indentation = '  '.repeat(indent);
@@ -350,12 +349,12 @@ const DataRow: React.FC<DataRowProps> = ({
       )}
       <div className="ml-7 px-2 py-1">
   {measurementDescription?.description &&
-  Array.isArray(measurementDescription.description.description) &&
-  measurementDescription.description.description.length > 0 ? (
+  Array.isArray(measurementDescription.description.cechy) &&
+  measurementDescription.description.cechy.length > 0 ? (
     <div>
       <div className="flex flex-wrap items-center gap-2 mb-2">
         <span className="text-secondary-foreground font-semibold">Cechy:</span>
-        {measurementDescription.description.description.map((d, idx, arr) => (
+        {measurementDescription.description.cechy.map((d, idx, arr) => (
           <React.Fragment key={d.id || d.name + idx}>
             <span
               className={`
@@ -364,7 +363,6 @@ const DataRow: React.FC<DataRowProps> = ({
               `}
             >
               {d.name}
-              <span className="ml-2 text-xs uppercase opacity-60">{d.type}</span>
             </span>
             {idx !== arr.length - 1 && (
               <span className="mx-1 text-xl text-[#888]">→</span>
@@ -381,10 +379,6 @@ const DataRow: React.FC<DataRowProps> = ({
               className="rounded-2xl px-3 py-1 text-sm font-medium bg-pink-900 text-pink-200"
             >
               {w.name}
-              <span className="ml-2 text-xs uppercase opacity-60">{w.type}</span>
-              {w.weight !== undefined && (
-                <span className="ml-2 text-xs opacity-50">({w.weight})</span>
-              )}
             </span>
           ))}
         </div>
@@ -398,10 +392,6 @@ const DataRow: React.FC<DataRowProps> = ({
               className="rounded-2xl px-3 py-1 text-sm font-medium bg-[#653828] text-[#ffdcb0]"
             >
               {r.name}
-              <span className="ml-2 text-xs uppercase opacity-60">{r.type}</span>
-              {r.weight !== undefined && (
-                <span className="ml-2 text-xs opacity-50">({r.weight})</span>
-              )}
             </span>
           ))}
         </div>
@@ -420,12 +410,12 @@ const DataRow: React.FC<DataRowProps> = ({
         {Array.isArray(measurementDescription?.localization) &&
         measurementDescription.localization.length > 0 ? (
           <div className="text-secondary-foreground text-base">
-            <strong>Localization:</strong>{' '}
+            <strong>Lokalizacja:</strong>{' '}
             {measurementDescription.localization.map(d => d.name).join(' → ')}
           </div>
         ) : (
           <div className="text-secondary-foreground text-base">
-            <strong>No localization</strong>
+            <strong>Brak Lokalizacji</strong>
           </div>
         )}
       </div>
