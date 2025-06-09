@@ -85,6 +85,7 @@ function ViewerLayout({
     return { entry, content: entry.component };
   };
 
+
   useEffect(() => {
     const { unsubscribe } = hangingProtocolService.subscribe(
       HangingProtocolService.EVENTS.PROTOCOL_CHANGED,
@@ -132,7 +133,6 @@ function ViewerLayout({
   }, [panelService, hasPanels]);
 
   const viewportComponents = viewports.map(getViewportComponentData);
-
   return (
     <div>
       <ViewerHeader
@@ -189,7 +189,7 @@ function ViewerLayout({
                 <ResizablePanel {...resizableRightPanelProps}>
                   <SidePanelWithServices
                     side="right"
-                    isExpanded={!rightPanelClosedState}
+                    isExpanded={true}
                     servicesManager={servicesManager}
                     {...rightPanelProps}
                     

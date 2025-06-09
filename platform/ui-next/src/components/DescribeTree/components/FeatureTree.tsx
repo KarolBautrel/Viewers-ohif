@@ -1,66 +1,13 @@
 import React, { useState } from 'react';
-import type { CechaNode, Suggestion } from '../types';
-import { cleanChoice } from '../helpers';
-
-const suggestionColor = {
-  wnioski: 'bg-pink-800',
-  rozpoznanie: 'bg-[#653828]',
-  objaw: 'bg-indigo-800',
-} as const;
-
-function extractSuggestionsFlat(node: any | null): Suggestion[] {
-  if (!node) return [];
-  const list: Suggestion[] = [];
-  (node.suggested_rozpoznanie ?? []).forEach((r: any) =>
-    list.push({ name: r.name, type: 'rozpoznanie', weight: r.weight, uuid: r.uuid })
-  );
-  (node.sugeruje_wnioski ?? []).forEach((w: any) =>
-    list.push({ name: w.name, type: 'wnioski', weight: w.weight, uuid: w.uuid })
-  );
-  (node.sugeruje_rozpoznanie ?? []).forEach((r: any) =>
-    list.push({ name: r.name, type: 'rozpoznanie', weight: r.weight, uuid: r.uuid })
-  );
-  (node.sugeruje_objaw ?? []).forEach((o: any) =>
-    list.push({ name: o.name, type: 'objaw', weight: o.weight, uuid: o.uuid })
-  );
-  (node.children_dane_z_pomiaru ?? []).forEach((d: any) => {
-    (d.sugeruje_wnioski ?? []).forEach((w: any) =>
-      list.push({ name: w.name, type: 'wnioski', weight: w.weight, uuid: w.uuid })
-    );
-    (d.sugeruje_rozpoznanie ?? []).forEach((r: any) =>
-      list.push({ name: r.name, type: 'rozpoznanie', weight: r.weight, uuid: r.uuid })
-    );
-    (d.sugeruje_objaw ?? []).forEach((o: any) =>
-      list.push({ name: o.name, type: 'objaw', weight: o.weight, uuid: o.uuid })
-    );
-  });
-  // UWAGA: NIC ze skierowania!
-  // (node.skierowanie && ...)
-  const uniq = new Map<string, Suggestion>();
-  const key = (s: Suggestion) => `${s.type}:${s.name}:${s.source ?? ''}`;
-  list.forEach(s => {
-    const k = key(s);
-    const existing = uniq.get(k);
-    if (!existing || (s.weight ?? 0) > (existing?.weight ?? 0)) {
-      uniq.set(k, s);
-    }
-  });
-  return Array.from(uniq.values()).sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0));
-}
 
 export default function FeatureTree({
   data,
   onDone,
   onBack,
-}: {
-  data: any[];
-  onDone: (selected: any[]) => void;
-  onBack: () => void;
 }) {
   const [path, setPath] = useState<string[]>([]);
   const [selected, setSelected] = useState<any[]>([]);
 
-  // Helper do wyszukania node po ścieżce
   function getCurrentNode() {
     if (!data) return null;
     if (path.length === 0) return data[0];
@@ -70,19 +17,67 @@ export default function FeatureTree({
     }
     return node;
   }
+
+  function extractFinalSuggestions(node) {
+    const wnioski: any[] = [];
+    const rozpoznania: any[] = [];
+    if (!node) return { wnioski, rozpoznania };
+
+    (node.sugeruje_wnioski ?? []).forEach(w =>
+      wnioski.push({
+        name: w.name,
+        id: w.uuid || w.element_id_property || w.id,
+        type: 'wnioski',
+        weight: w.weight ?? 1,
+      })
+    );
+    (node.sugeruje_rozpoznanie ?? []).forEach(r =>
+      rozpoznania.push({
+        name: r.name,
+        id: r.uuid || r.element_id_property || r.id,
+        type: 'rozpoznanie',
+        weight: r.weight ?? 1,
+      })
+    );
+    (node.suggested_rozpoznanie ?? []).forEach(r =>
+      rozpoznania.push({
+        name: r.name,
+        id: r.uuid || r.element_id_property || r.id,
+        type: 'rozpoznanie',
+        weight: r.weight ?? 1,
+      })
+    );
+    (node.children_dane_z_pomiaru ?? []).forEach(d => {
+      (d.sugeruje_wnioski ?? []).forEach(w =>
+        wnioski.push({
+          name: w.name,
+          id: w.uuid || w.element_id_property || w.id,
+          type: 'wnioski',
+          weight: w.weight ?? 1,
+        })
+      );
+      (d.sugeruje_rozpoznanie ?? []).forEach(r =>
+        rozpoznania.push({
+          name: r.name,
+          id: r.uuid || r.element_id_property || r.id,
+          type: 'rozpoznanie',
+          weight: r.weight ?? 1,
+        })
+      );
+    });
+
+    // Sortuj malejąco po wadze
+    wnioski.sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0));
+    rozpoznania.sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0));
+    return { wnioski, rozpoznania };
+  }
+
   const currentNode = getCurrentNode();
   const currentLevel = currentNode?.children_cecha || [];
-  const suggestions = extractSuggestionsFlat(currentNode);
 
   function handleSelectCecha(node: any) {
     setSelected(prev => [...prev, node]);
     setPath(prev => [...prev, node.element_id_property]);
-  }
-  function handleSelectSuggestion(sug: any) {
-    setSelected(prev => [...prev, sug]);
-    const merged = [...selected, sug];
-    const cleanedMerged = cleanChoice(merged);
-    onDone(cleanedMerged);
   }
   function goBack() {
     setPath(prev => prev.slice(0, -1));
@@ -93,87 +88,113 @@ export default function FeatureTree({
     setSelected([]);
     onBack();
   }
+
   function finishSelection() {
-    const cleanedSelection = cleanChoice(selected);
-    onDone(cleanedSelection);
+    const description = selected.map((node, idx) => ({
+      name: node.name,
+      id: node.uuid || node.element_id_property || node.id,
+      type: node.type || 'cecha',
+      step: idx + 1,
+    }));
+
+    const { wnioski, rozpoznania } = extractFinalSuggestions(currentNode);
+
+    onDone({
+      description,
+      wnioski,
+      rozpoznania,
+    });
   }
 
   return (
-    <div className="flex w-full flex-col gap-4">
+    <div className="flex flex-col gap-4 w-full">
       <div className="flex flex-row items-center gap-2">
-        <span className="text-lg font-semibold text-[#C9C9C9]">Wybierz cechę</span>
+        <span className="font-semibold text-[#C9C9C9] text-lg">Wybierz cechę</span>
         {(path.length > 0 || selected.length > 0) && (
-          <button
-            className="ml-auto rounded bg-[#23274a] px-3 py-1 text-xs text-white"
-            onClick={goBack}
-          >
-            Wróć
-          </button>
+          <button className="ml-auto text-xs bg-[#23274a] text-white px-3 py-1 rounded"
+            onClick={goBack}>Wróć</button>
         )}
       </div>
       {selected.length > 0 && (
-        <div className="mb-1 flex flex-wrap gap-2">
-          {selected.map((n, i) => (
-            <span
-              key={n.element_id_property || n.name}
-              className="rounded-xl bg-[#23274a] px-3 py-1 text-xs font-medium text-white"
-            >
-              {n.name}
-              {i !== selected.length - 1 && <span className="mx-1 text-gray-400">➝</span>}
-            </span>
-          ))}
+  <>
+    <div className="flex flex-wrap gap-2 mb-1">
+      {selected.map((n, i) => (
+        <span key={n.element_id_property || n.name}
+          className="bg-[#23274a] text-white rounded-xl px-3 py-1 text-xs font-medium">
+          {n.name}
+          {i !== selected.length - 1 && (
+            <span className="mx-1 text-gray-400">➝</span>
+          )}
+        </span>
+      ))}
+    </div>
+    {/* ---- INFO PANEL ---- */}
+    <div className="flex flex-col gap-2 my-3 w-full">
+      {/* WNIOSKI */}
+      {extractFinalSuggestions(currentNode).wnioski.length > 0 && (
+        <div>
+          <div className="font-semibold text-pink-300 mb-1 text-xs">Wnioski</div>
+          <div className="flex flex-col gap-1">
+            {extractFinalSuggestions(currentNode).wnioski.map(w =>
+              <div
+                key={w.id}
+                className="flex items-center rounded bg-pink-900/50 text-pink-100 px-3 py-1 text-xs font-medium"
+              >
+                <span>{w.name}</span>
+                <span className="ml-2 text-pink-300 opacity-70">
+                  {w.weight && `(waga: ${w.weight})`}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       )}
-      {suggestions.length > 0 && (
-        <>
-          <div className="mb-1 text-xs text-[#C9C9C9]">Sugestie (po wadze)</div>
-          <div className="flex flex-col gap-2">
-            {suggestions.map((sug, idx) => (
-              <button
-                key={sug.type + '-' + sug.name + '-' + idx}
-                className={`${suggestionColor[sug.type]} rounded px-3 py-2 text-left text-sm font-semibold text-white`}
-                onClick={() => handleSelectSuggestion(sug)}
+      {/* ROZPOZNANIA */}
+      {extractFinalSuggestions(currentNode).rozpoznania.length > 0 && (
+        <div>
+          <div className="font-semibold text-[#eeb980] mb-1 text-xs">Rozpoznania różnicowe</div>
+          <div className="flex flex-col gap-1">
+            {extractFinalSuggestions(currentNode).rozpoznania.map(r =>
+              <div
+                key={r.id}
+                className="flex items-center rounded bg-[#653828]/80 text-[#eeb980] px-3 py-1 text-xs font-medium"
               >
-                {sug.name}
-                {sug.weight !== undefined && (
-                  <span className="ml-2 text-xs font-normal opacity-80">
-                    ({sug.type}
-                    {sug.weight !== undefined ? `, ${sug.weight}` : ''})
-                  </span>
-                )}
-              </button>
-            ))}
+                <span>{r.name}</span>
+                <span className="ml-2 opacity-80">
+                  {r.weight && `(waga: ${r.weight})`}
+                </span>
+              </div>
+            )}
           </div>
-        </>
+        </div>
       )}
+    </div>
+    {/* ---- END INFO PANEL ---- */}
+  </>
+)}
+
       {currentLevel.length > 0 && (
         <>
-          <div className="mb-1 text-xs text-[#C9C9C9]">Cechy</div>
+          <div className="text-[#C9C9C9] text-xs mb-1">Cechy</div>
           <div className="flex flex-col gap-2">
             {currentLevel.map((node: any) => (
               <button
                 key={node.element_id_property}
-                className="rounded bg-[#23274a] px-3 py-2 text-sm font-semibold text-white hover:bg-[#2d314f]"
+                className="bg-[#23274a] hover:bg-[#2d314f] text-white rounded px-3 py-2 font-semibold text-sm"
                 onClick={() => handleSelectCecha(node)}
-              >
-                {node.name}
-              </button>
+              >{node.name}</button>
             ))}
           </div>
         </>
       )}
       {selected.length > 0 && (
-        <button
-          className="mt-4 w-full rounded bg-[#00BFD9] py-2 font-bold text-black hover:bg-[#14d6f8]"
-          onClick={finishSelection}
-        >
+        <button className="mt-4 w-full bg-[#00BFD9] hover:bg-[#14d6f8] text-black font-bold py-2 rounded"
+          onClick={finishSelection}>
           Zakończ wybór
         </button>
       )}
-      <button
-        className="mt-3 w-full rounded bg-[#23274a] py-2 text-xs text-[#C9C9C9]"
-        onClick={resetAll}
-      >
+      <button className="mt-3 w-full text-xs bg-[#23274a] text-[#C9C9C9] py-2 rounded"
+        onClick={resetAll}>
         Reset
       </button>
     </div>

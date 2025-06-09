@@ -183,7 +183,7 @@ const SidePanel = ({
   side,
   className,
   activeTabIndex: activeTabIndexProp,
-  isExpanded,
+  isExpanded = true,
   tabs,
   onOpen,
   onClose,
@@ -339,6 +339,9 @@ const SidePanel = ({
   };
 
   const getCloseIcon = () => {
+    if (side === 'right') {
+      return null;
+    }
     return (
       <div
         className={classnames(

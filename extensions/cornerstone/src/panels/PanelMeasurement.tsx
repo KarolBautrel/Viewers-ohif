@@ -54,6 +54,7 @@ export default function PanelMeasurement({
   const [modalOpen, setModalOpen] = useState(false);
 
   const [describeMode, setDescribeMode] = useState<{ uid: string } | null>(null);
+  const [userHasSelected, setUserHasSelected] = useState(false);
 
   const { measurementService } = servicesManager.services;
   const displayMeasurements = useMeasurements(servicesManager, {
@@ -68,6 +69,11 @@ export default function PanelMeasurement({
     }
   }, [displayMeasurements.length]);
 
+  useEffect(() => {
+    if (!userHasSelected) {
+      setModalOpen(true);
+    }
+  }, [userHasSelected]);
   const bindCommand = (name: string | string[], options?) => {
     return (...args: any[]) => {
       const [uid, description] = args;
@@ -106,6 +112,7 @@ export default function PanelMeasurement({
     setReferralData(skierowanie);
     setCircumstancesData(warunki);
     setModalOpen(false);
+    setUserHasSelected(true); 
   }
 
   return (
@@ -115,6 +122,7 @@ export default function PanelMeasurement({
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onDescribe={handleModalDescribe}
+        forceModal={!userHasSelected}
       />
       
 

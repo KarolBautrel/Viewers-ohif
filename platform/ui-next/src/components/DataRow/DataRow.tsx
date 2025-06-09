@@ -129,6 +129,8 @@ const DataRow: React.FC<DataRowProps> = ({
     return txt.value;
   };
 
+  useEffect(()=>{console.log(measurementDescription)},[])
+
   const renderDetailText = (text: string, indent: number = 0) => {
     const indentation = '  '.repeat(indent);
     if (text === '') {
@@ -347,18 +349,71 @@ const DataRow: React.FC<DataRowProps> = ({
         </div>
       )}
       <div className="ml-7 px-2 py-1">
-        {Array.isArray(measurementDescription?.description) &&
-        measurementDescription.description.length > 0 ? (
-          <div className="text-secondary-foreground text-base">
-            <strong>Description:</strong>{' '}
-            {measurementDescription.description.map(d => d.name).join(' → ')}
-          </div>
-        ) : (
-          <div className="text-secondary-foreground text-base">
-            <strong>No description</strong>
-          </div>
-        )}
+  {measurementDescription?.description &&
+  Array.isArray(measurementDescription.description.description) &&
+  measurementDescription.description.description.length > 0 ? (
+    <div>
+      <div className="flex flex-wrap items-center gap-2 mb-2">
+        <span className="text-secondary-foreground font-semibold">Cechy:</span>
+        {measurementDescription.description.description.map((d, idx, arr) => (
+          <React.Fragment key={d.id || d.name + idx}>
+            <span
+              className={`
+                rounded-2xl px-3 py-1 text-sm font-medium
+                bg-[#23274a] text-white
+              `}
+            >
+              {d.name}
+              <span className="ml-2 text-xs uppercase opacity-60">{d.type}</span>
+            </span>
+            {idx !== arr.length - 1 && (
+              <span className="mx-1 text-xl text-[#888]">→</span>
+            )}
+          </React.Fragment>
+        ))}
       </div>
+      {measurementDescription.description.wnioski?.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 mb-2">
+          <span className="text-pink-300 font-semibold">Wnioski:</span>
+          {measurementDescription.description.wnioski.map((w, idx) => (
+            <span
+              key={w.id || w.name + idx}
+              className="rounded-2xl px-3 py-1 text-sm font-medium bg-pink-900 text-pink-200"
+            >
+              {w.name}
+              <span className="ml-2 text-xs uppercase opacity-60">{w.type}</span>
+              {w.weight !== undefined && (
+                <span className="ml-2 text-xs opacity-50">({w.weight})</span>
+              )}
+            </span>
+          ))}
+        </div>
+      )}
+      {measurementDescription.description.rozpoznania?.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[#ffdcb0] font-semibold">Rozpoznania:</span>
+          {measurementDescription.description.rozpoznania.map((r, idx) => (
+            <span
+              key={r.id || r.name + idx}
+              className="rounded-2xl px-3 py-1 text-sm font-medium bg-[#653828] text-[#ffdcb0]"
+            >
+              {r.name}
+              <span className="ml-2 text-xs uppercase opacity-60">{r.type}</span>
+              {r.weight !== undefined && (
+                <span className="ml-2 text-xs opacity-50">({r.weight})</span>
+              )}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  ) : (
+    <div className="text-secondary-foreground text-base">
+      <strong>Brak opisu</strong>
+    </div>
+  )}
+</div>
+
 
       {/* Localization */}
       <div className="ml-7 px-2 py-1">

@@ -1,6 +1,5 @@
-import { FeatureForm } from "./FeatureForm";
 import { FeatureTree } from "./FeatureTree";
-import { LocationForm } from "./LocationForm";
 import { LocationTree } from "./LocationTree";
+import {CircumstancesTree} from "./CircumstancesTree"
 
-export {FeatureForm, FeatureTree, LocationForm, LocationTree}
+export {FeatureTree, LocationTree, CircumstancesTree}

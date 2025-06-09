@@ -302,10 +302,10 @@ const useResizablePanels = (
     },
     { order: 1, id: 'viewerLayoutResizableViewportGridPanel' },
     {
-      defaultSize: rightResizablePanelMinimumSize,
+      defaultSize: 260,
       minSize: rightResizablePanelMinimumSize,
       onResize: onRightPanelResize,
-      collapsible: true,
+      collapsible: false,
       collapsedSize: rightResizePanelCollapsedSize,
       onCollapse: () => setRightPanelClosed(true),
       onExpand: () => setRightPanelClosed(false),

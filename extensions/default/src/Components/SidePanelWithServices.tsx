@@ -35,12 +35,13 @@ const SidePanelWithServices = ({
   const [sidePanelExpanded, setSidePanelExpanded] = useState(isExpanded);
   const [activeTabIndex, setActiveTabIndex] = useState(activeTabIndexProp ?? 0);
   const [closedManually, setClosedManually] = useState(false);
-  const [tabs, setTabs] = useState(tabsProp ?? panelService.getPanels(side));
-
+  const [tabs, setTabs] = useState(
+    (tabsProp ?? panelService.getPanels(side)).filter(tab => tab.iconLabel !== 'Segmentation')
+  );
   const handleActiveTabIndexChange = useCallback(({ activeTabIndex }) => {
     setActiveTabIndex(activeTabIndex);
   }, []);
-
+ 
   const handleOpen = useCallback(() => {
     setSidePanelExpanded(true);
     onOpen?.();
