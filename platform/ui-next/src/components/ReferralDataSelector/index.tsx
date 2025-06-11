@@ -33,7 +33,7 @@ export function ReferralDataSelector({
           onClick={onOpenModal}
           type="button"
         >
-        Modyfikuj dane wejsciowe
+          Modyfikuj dane wejsciowe
         </button>
       </div>
       <div className="mt-3">
@@ -41,10 +41,10 @@ export function ReferralDataSelector({
           <span className="text-sm font-semibold text-blue-200">Dane ze skierowania:</span>
           {renderPills(referralData)}
         </div>
-        <div className="mt-2">
+        {/* <div className="mt-2">
           <span className="text-sm font-semibold text-blue-200">Warunki badania:</span>
           {renderPills(circumstancesData)}
-        </div>
+        </div> */}
       </div>
     </div>
   );

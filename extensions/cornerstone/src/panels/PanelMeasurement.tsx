@@ -4,7 +4,7 @@ import { MeasurementTable } from '@ohif/ui-next';
 import debounce from 'lodash.debounce';
 import { useMeasurements } from '../hooks/useMeasurements';
 import { DescribeTree } from '../../../../platform/ui-next/src/components/DescribeTree/index'; //zmienisz sobie sciezke
-import  DescribeModal from '../../../../platform/ui-next/src/components/DescribeModal/index'; //zmienisz sobie sciezke
+import DescribeModal from '../../../../platform/ui-next/src/components/DescribeModal/index'; //zmienisz sobie sciezke
 import { ReferralDataSelector } from '../../../../platform/ui-next/src/components/ReferralDataSelector/index';
 
 const { filterAdditionalFindings: filterAdditionalFinding, filterAny } = utils.MeasurementFilters;
@@ -14,31 +14,26 @@ export type withAppAndFilters = withAppTypes & {
 };
 
 export const DANE_ZE_SKIEROWANIA = [
-  "nikotynizm",
-  "nowotwór złośliwy w wywiadzie",
-  "pacjent w immunosupresji",
-  "zakażenie wirusem HIV/AIDS",
-  "stan po przeszczepie allogenicznym narządu/szpiku",
-  "czynniki ryzyka",
-  "kontrola po 3 miesiącach",
-  "kontrola po roku",
-  "nikotynizm",
-  "kontrola po >600 dniach",
-  "kontrola po 400-600 dniach",
-  "kontrola po <=400 dniach",
-  "kontrola po >400 dniach",
-  "kontrola po 4 latach ",
-  "kontrola po 3 miesiącach",
-  "badanie kontrolne",
-  "kontrola po 3=>=6 miesiącach",
+  'nikotynizm',
+  'nowotwór złośliwy w wywiadzie',
+  'pacjent w immunosupresji',
+  'zakażenie wirusem HIV/AIDS',
+  'stan po przeszczepie allogenicznym narządu/szpiku',
+  'czynniki ryzyka',
+  'kontrola po 3 miesiącach',
+  'kontrola po roku',
+  'nikotynizm',
+  'kontrola po >600 dniach',
+  'kontrola po 400-600 dniach',
+  'kontrola po <=400 dniach',
+  'kontrola po >400 dniach',
+  'kontrola po 4 latach ',
+  'kontrola po 3 miesiącach',
+  'badanie kontrolne',
+  'kontrola po 3=>=6 miesiącach',
 ];
 
-export const WARUNKI_BADANIA = [
-  'warunek 1',
-  'warunek 2',
-  'warunek 3',
-  'warunek 4',
-];
+export const WARUNKI_BADANIA = ['warunek 1', 'warunek 2', 'warunek 3', 'warunek 4'];
 
 export default function PanelMeasurement({
   servicesManager,
@@ -112,12 +107,10 @@ export default function PanelMeasurement({
     setReferralData(skierowanie);
     setCircumstancesData(warunki);
     setModalOpen(false);
-    setUserHasSelected(true); 
+    setUserHasSelected(true);
   }
 
-  const hasAnyDescriptions = displayMeasurements.some(
-    m => !!m.description 
-  );
+  const hasAnyDescriptions = displayMeasurements.some(m => !!m.description);
 
   function clearAllDescriptions() {
     displayMeasurements.forEach(m => {
@@ -151,21 +144,19 @@ export default function PanelMeasurement({
     } else {
       setModalOpen(true);
     }
-  } 
+  }
   return (
     <>
-      {/* Modal z wyborem danych wyjściowych */}
       <DescribeModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onDescribe={handleModalDescribe}
         forceModal={!userHasSelected}
       />
-      
 
       {describeMode ? (
-        <div className="h-full w-full flex flex-col">
-          <div className="flex-1 overflow-auto p-4 bg-muted">
+        <div className="flex h-full w-full flex-col">
+          <div className="bg-muted flex-1 overflow-auto p-4">
             <DescribeTree
               uid={describeMode.uid}
               onSelect={description => {
@@ -185,7 +176,7 @@ export default function PanelMeasurement({
         </div>
       ) : (
         <div
-          className="invisible-scrollbar overflow-y-auto overflow-x-hidden h-full"
+          className="invisible-scrollbar h-full overflow-y-auto overflow-x-hidden"
           ref={measurementsPanelRef}
           data-cy={'trackedMeasurements-panel'}
         >

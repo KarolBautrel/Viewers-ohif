@@ -378,8 +378,8 @@ const OHIFCornerstoneViewport = React.memo(
     return (
       <React.Fragment>
         <div className="viewport-wrapper">
-           {/* DEBUG BADGE */}
-      <div
+          {/* DEBUG BADGE */}
+          {/* <div
         style={{
           position: 'absolute',
           top: 10,
@@ -398,7 +398,7 @@ const OHIFCornerstoneViewport = React.memo(
         }}
       >
         OHIF VIEWPORT TEST
-      </div>
+      </div> */}
           <div
             className="cornerstone-viewport-element"
             style={{ height: '100%', width: '100%' }}

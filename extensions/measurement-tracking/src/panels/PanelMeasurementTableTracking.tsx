@@ -41,7 +41,7 @@ function PanelMeasurementTableTracking({
           return (
             <div className="bg-background flex h-9 w-full items-center rounded pr-0.5">
               <div className="flex space-x-1">
-                <Button
+                {/* <Button
                   size="sm"
                   variant="ghost"
                   className="pl-1.5"
@@ -53,8 +53,8 @@ function PanelMeasurementTableTracking({
                 >
                   <Icons.Download className="h-5 w-5" />
                   <span className="pl-1">CSV</span>
-                </Button>
-                <Button
+                </Button> */}
+                {/* <Button
                   size="sm"
                   variant="ghost"
                   className="pl-0.5"
@@ -66,8 +66,8 @@ function PanelMeasurementTableTracking({
                   }}
                 >
                   <Icons.Database />
-                 Save to Database
-                </Button>
+                  Save to Database
+                </Button> */}
                 <Button
                   size="sm"
                   variant="ghost"

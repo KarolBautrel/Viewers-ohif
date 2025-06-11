@@ -464,7 +464,7 @@ const SidePanel = ({
       style={style}
     >
       {/* TEST BADGE */}
-    <div
+      {/* <div
       style={{
         background: '#ff1f44',
         color: '#fff',
@@ -480,7 +480,7 @@ const SidePanel = ({
       }}
     >
       TEST PANEL
-    </div>
+    </div> */}
       {panelOpen ? (
         <>
           {getOpenStateComponent()}

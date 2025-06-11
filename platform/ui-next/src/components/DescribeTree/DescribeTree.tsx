@@ -5,10 +5,10 @@ import LocationTree from './components/LocationTree';
 import type { CechaNode } from './types';
 
 export const OBJAW_RADIOLOGICZNY = [
-  'guzek/obszar miąższu płuca typu matowej szyby',
+  // 'część lita częściowo litego guzka miąższu płuca',
   'guzek miąższu płuca',
   'mnogie guzki płuca',
-  'częściowo lity guzek miąższu płuca',
+  // 'częściowo lity guzek miąższu płuca',
 ];
 
 const API_URL = 'http://localhost:8001';
@@ -28,7 +28,7 @@ export default function DescribeTree({
   referralData: string[];
   circumstancecData: string[];
 }) {
-  const [step, setStep] = useState<'circumstances' | 'form' | 'features' | 'locations'>('circumstances');
+  const [step, setStep] = useState<'circumstances' | 'form' | 'features' | 'locations'>('form');
   const [featureData, setFeatureData] = useState<CechaNode[] | null>(null);
   const [locData, setLocData] = useState<any[] | null>(null);
   const [describeResult, setDescribeResult] = useState<{
@@ -122,7 +122,7 @@ export default function DescribeTree({
   }
 
   function resetAll() {
-    setStep('circumstances');
+    setStep('form');
     setFeatureData(null);
     setLocData(null);
     setFindingName('');

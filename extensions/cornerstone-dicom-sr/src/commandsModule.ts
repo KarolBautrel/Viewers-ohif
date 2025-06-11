@@ -91,14 +91,14 @@ const commandsModule = (props: withAppTypes) => {
      * @param options Naturalized DICOM JSON headers to merge into the displaySet.
      * @return The naturalized report
      */
-     storeMeasurements: async ({
+    storeMeasurements: async ({
       measurementData,
       dataSource,
       additionalFindingTypes,
       options = {},
     }) => {
       OHIF.log.info('[REST] storeMeasurements (custom REST endpoint)');
-    
+      // console.log(JSON.stringify(measurementData));
       try {
         const response = await fetch('http://localhost:8001/api/neo/measurement/create', {
           method: 'POST',
@@ -107,7 +107,7 @@ const commandsModule = (props: withAppTypes) => {
           },
           body: JSON.stringify(measurementData),
         });
-    
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -119,7 +119,7 @@ const commandsModule = (props: withAppTypes) => {
         throw new Error(error.message || 'Error while sending the measurements.');
       }
     },
-    
+
     /**
      * Loads measurements by hydrating and loading the SR for the given display set instance UID
      * and displays it in the active viewport.
