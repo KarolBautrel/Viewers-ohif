@@ -6,7 +6,7 @@ import { useMeasurements } from '../hooks/useMeasurements';
 import { DescribeTree } from '../../../../platform/ui-next/src/components/DescribeTree/index'; //zmienie sobie sciezke
 import { DescribeModal } from '../../../../platform/ui-next/src/components/DescribeModal/index'; //zmienie sobie sciezke
 import { MeasurementModal } from '../../../../platform/ui-next/src/components/DescribeModal/index';
-
+import { useWebSocketSender } from '../hooks/useWebsocketListener';
 import { ReferralDataSelector } from '../../../../platform/ui-next/src/components/ReferralDataSelector/index';
 
 const { filterAdditionalFindings: filterAdditionalFinding, filterAny } = utils.MeasurementFilters;
@@ -58,6 +58,7 @@ export default function PanelMeasurement({
   const displayMeasurements = useMeasurements(servicesManager, {
     measurementFilter,
   });
+  const { sendMessage } = useWebSocketSender('ws://localhost:1234/ws');
 
   const handleRaportJson = () => {
     setShowJSONModal(true);
@@ -100,6 +101,9 @@ export default function PanelMeasurement({
     item => additionalFilter(item) && measurementFilter(item)
   );
 
+  const handleSendSocketMessage = () => {
+    sendMessage(displayMeasurements);
+  };
   const onArgs = {
     onClick: jumpToImage,
     onDelete: removeMeasurement,
@@ -182,6 +186,7 @@ export default function PanelMeasurement({
               measurements={measurements}
               referralData={referralData}
               circumstancecData={circumstancesData}
+              onSocketMessage={handleSendSocketMessage}
             />
           </div>
         </div>
