@@ -1,0 +1,300 @@
+export const sampleOne = [
+    {
+        "uid": "15812c09-e97c-4617-a00f-1d3f5e554b88",
+        "SOPInstanceUID": "1.3.12.2.1107.5.8.1.123456789.199507271758050707765",
+        "FrameOfReferenceUID": "1.3.12.2.1107.5.8.1.123456789.199507271758050707090",
+        "points": [
+            [
+                -13.303349999999995,
+                -41.80678215357969,
+                104.45566732678984
+            ],
+            [
+                -13.303349999999995,
+                -41.300683712471134,
+                93.82760006351037
+            ]
+        ],
+        "description": [
+            {
+              "step": 1,
+              "name": "guzek miaższu płuca",
+              "id": "a1b2c",
+              "type": "objaw_radiologiczny"
+            },
+            {
+              "step": 2,
+              "name": "lity",
+              "id": "d3e4f",
+              "type": "cecha"
+            },
+            {
+              "step": 3,
+              "name": "nowotwór złośliwy płuca",
+              "id": "g5h6i",
+              "type": "wniosek"
+            }
+          ],
+        "textBox": {
+            "hasMoved": false,
+            "worldPosition": [
+                -13.303349999999995,
+                -41.30068371247114,
+                99.14163369515015
+            ],
+            "worldBoundingBox": {
+                "topLeft": [
+                    -13.303349999999995,
+                    -32.450093042034965,
+                    90.29104302471389
+                ],
+                "topRight": [
+                    -13.303349999999995,
+                    -2.7287032468764387,
+                    90.29104302471389
+                ],
+                "bottomLeft": [
+                    -13.303349999999995,
+                    -32.450093042034965,
+                    75.42205069838114
+                ],
+                "bottomRight": [
+                    -13.303349999999995,
+                    -2.7287032468764387,
+                    75.42205069838114
+                ]
+            }
+        },
+        "isLocked": false,
+        "isVisible": true,
+        "metadata": {
+            "FrameOfReferenceUID": "1.3.12.2.1107.5.8.1.123456789.199507271758050707090",
+            "cameraFocalPoint": [
+                -13.30335,
+                19.178079999999994,
+                19.178079999999994
+            ],
+            "viewPlaneNormal": [
+                1,
+                0,
+                0
+            ],
+            "viewUp": [
+                0,
+                0,
+                1
+            ],
+            "sliceIndex": 0,
+            "referencedImageId": "wadors:https://d14fa38qiwhyfd.cloudfront.net/dicomweb/studies/1.2.276.0.7230010.3.1.2.2155604110.4180.1021041295.21/series/1.3.12.2.1107.5.8.1.123456789.199507271758050706635/instances/1.3.12.2.1107.5.8.1.123456789.199507271758050707765/frames/1",
+            "toolName": "Length",
+            "cameraPosition": [
+                141.5674682855806,
+                19.178079999999994,
+                19.178079999999994
+            ]
+        },
+        "referenceSeriesUID": "1.3.12.2.1107.5.8.1.123456789.199507271758050706635",
+        "referenceStudyUID": "1.2.276.0.7230010.3.1.2.2155604110.4180.1021041295.21",
+        "referencedImageId": "wadors:https://d14fa38qiwhyfd.cloudfront.net/dicomweb/studies/1.2.276.0.7230010.3.1.2.2155604110.4180.1021041295.21/series/1.3.12.2.1107.5.8.1.123456789.199507271758050706635/instances/1.3.12.2.1107.5.8.1.123456789.199507271758050707765/frames/1",
+        "frameNumber": 1,
+        "toolName": "Length",
+        "displaySetInstanceUID": "4e4a23d2-39c4-df37-c94b-1745decf975a",
+        "label": "",
+        "displayText": {
+            "primary": [
+                "10.6 mm"
+            ],
+            "secondary": [
+                "S: 0 I: 13"
+            ]
+        },
+        "data": {
+            "imageId:wadors:https://d14fa38qiwhyfd.cloudfront.net/dicomweb/studies/1.2.276.0.7230010.3.1.2.2155604110.4180.1021041295.21/series/1.3.12.2.1107.5.8.1.123456789.199507271758050706635/instances/1.3.12.2.1107.5.8.1.123456789.199507271758050707765/frames/1": {
+                "length": 10.64011040285227,
+                "unit": "mm"
+            }
+        },
+        "type": "value_type::polyline",
+        "source": {
+            "uid": "b53ec134-86b5-3437-7166-73db77366a0c",
+            "name": "Cornerstone3DTools",
+            "version": "0.1"
+        },
+        "modifiedTimestamp": 1747816760,
+        "isSelected": false
+    },
+    {
+        "uid": "8a9717d3-18c8-414c-af6b-59412fcef06f",
+        "SOPInstanceUID": "1.3.12.2.1107.5.8.1.123456789.199507271758050707765",
+        "FrameOfReferenceUID": "1.3.12.2.1107.5.8.1.123456789.199507271758050707090",
+        "points": [
+            [
+                -13.303349999999995,
+                -30.166518008083145,
+                69.7879241108545
+            ],
+            [
+                -13.303349999999995,
+                -21.30979528868361,
+                61.94339827367204
+            ]
+        ],
+        "description": [
+            {
+              "step": 1,
+              "name": "guzek miaższy płuca",
+              "id": "a1b2c",
+              "type": "objaw_radiologiczny"
+            },
+            {
+              "step": 2,
+              "name": "lity",
+              "id": "d3e4f",
+              "type": "cecha"
+            },
+            {
+              "step": 3,
+              "name": "nowotwór złośliwy płuca",
+              "id": "g5h6i",
+              "type": "wniosek",
+            }
+          ],
+        "textBox": {
+            "hasMoved": false,
+            "worldPosition": [
+                -13.303349999999995,
+                -18.335282952580656,
+                69.78792411085453
+            ],
+            "worldBoundingBox": {
+                "topLeft": [
+                    -13.303349999999995,
+                    -9.484692282144469,
+                    60.93733344041836
+                ],
+                "topRight": [
+                    -13.303349999999995,
+                    39.64582029204062,
+                    60.93733344041836
+                ],
+                "bottomLeft": [
+                    -13.303349999999995,
+                    -9.484692282144469,
+                    20.57863998322931
+                ],
+                "bottomRight": [
+                    -13.303349999999995,
+                    39.64582029204062,
+                    20.57863998322931
+                ]
+            }
+        },
+        "isLocked": false,
+        "isVisible": true,
+        "metadata": {
+            "toolName": "CircleROI",
+            "viewPlaneNormal": [
+                1,
+                0,
+                0
+            ],
+            "viewUp": [
+                0,
+                0,
+                1
+            ],
+            "FrameOfReferenceUID": "1.3.12.2.1107.5.8.1.123456789.199507271758050707090",
+            "referencedImageId": "wadors:https://d14fa38qiwhyfd.cloudfront.net/dicomweb/studies/1.2.276.0.7230010.3.1.2.2155604110.4180.1021041295.21/series/1.3.12.2.1107.5.8.1.123456789.199507271758050706635/instances/1.3.12.2.1107.5.8.1.123456789.199507271758050707765/frames/1",
+            "cameraFocalPoint": [
+                -13.30335,
+                19.178079999999994,
+                19.178079999999994
+            ],
+            "sliceIndex": 0
+        },
+        "referenceSeriesUID": "1.3.12.2.1107.5.8.1.123456789.199507271758050706635",
+        "referenceStudyUID": "1.2.276.0.7230010.3.1.2.2155604110.4180.1021041295.21",
+        "referencedImageId": "wadors:https://d14fa38qiwhyfd.cloudfront.net/dicomweb/studies/1.2.276.0.7230010.3.1.2.2155604110.4180.1021041295.21/series/1.3.12.2.1107.5.8.1.123456789.199507271758050706635/instances/1.3.12.2.1107.5.8.1.123456789.199507271758050707765/frames/1",
+        "frameNumber": 1,
+        "toolName": "CircleROI",
+        "displaySetInstanceUID": "4e4a23d2-39c4-df37-c94b-1745decf975a",
+        "label": "",
+        "displayText": {
+            "primary": [
+                "440 mm²",
+                "Max: 976 "
+            ],
+            "secondary": [
+                "S: 0 I: 13"
+            ]
+        },
+        "data": {
+            "imageId:wadors:https://d14fa38qiwhyfd.cloudfront.net/dicomweb/studies/1.2.276.0.7230010.3.1.2.2155604110.4180.1021041295.21/series/1.3.12.2.1107.5.8.1.123456789.199507271758050706635/instances/1.3.12.2.1107.5.8.1.123456789.199507271758050707765/frames/1": {
+                "Modality": "MR",
+                "area": 439.75419805505794,
+                "mean": 430.8391123439667,
+                "max": 976,
+                "pointsInShape": [],
+                "stdDev": 287.8274817918935,
+                "statsArray": [
+                    {
+                        "name": "max",
+                        "label": "Max Pixel",
+                        "value": 976,
+                        "unit": null,
+                        "pointIJK": [
+                            80,
+                            78,
+                            0
+                        ],
+                        "pointLPS": {
+                            "0": -13.303350448608398,
+                            "1": -18.32192039489746,
+                            "2": 58.240577697753906
+                        }
+                    },
+                    {
+                        "name": "mean",
+                        "label": "Mean Pixel",
+                        "value": 430.8391123439667,
+                        "unit": null
+                    },
+                    {
+                        "name": "stdDev",
+                        "label": "Standard Deviation",
+                        "value": 287.8274817918935,
+                        "unit": null
+                    },
+                    {
+                        "name": "stdDev",
+                        "label": "Standard Deviation",
+                        "value": 287.8274817918935,
+                        "unit": null
+                    },
+                    {
+                        "name": "count",
+                        "label": "Pixel Count",
+                        "value": 721,
+                        "unit": null
+                    }
+                ],
+                "isEmptyArea": false,
+                "areaUnit": "mm²",
+                "radius": 11.831233978271483,
+                "radiusUnit": "mm",
+                "perimeter": 74.33783549807926,
+                "modalityUnit": ""
+            }
+        },
+        "type": "value_type::circle",
+        "source": {
+            "uid": "b53ec134-86b5-3437-7166-73db77366a0c",
+            "name": "Cornerstone3DTools",
+            "version": "0.1"
+        },
+        "modifiedTimestamp": 1747816767,
+        "isSelected": true
+    }
+]
+
+
