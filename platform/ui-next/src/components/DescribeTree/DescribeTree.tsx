@@ -3,15 +3,13 @@ import CircumstancesTree from './components/CircumstancesTree';
 import FeatureTree from './components/FeatureTree';
 import LocationTree from './components/LocationTree';
 import type { CechaNode } from './types';
-
+import { API_URL } from './consts';
 export const OBJAW_RADIOLOGICZNY = [
   // 'część lita częściowo litego guzka miąższu płuca',
   'guzek miąższu płuca',
   'mnogie guzki płuca',
   // 'częściowo lity guzek miąższu płuca',
 ];
-
-const API_URL = 'http://localhost:8001';
 
 export default function DescribeTree({
   onSelect,
@@ -71,13 +69,11 @@ export default function DescribeTree({
     }
   }
 
-  // 1. Najpierw CircumstancesTree
   function handleCircumstancesDone(selectedCircumstances: any[]) {
     setDescribeResult(r => ({ ...r, circumstances: selectedCircumstances }));
     setStep('form');
   }
 
-  // 2. Potem FORMULARZ wyboru objawu radiologicznego i pobieranie cech
   async function fetchFeatures() {
     setLoading(true);
     setError(null);
@@ -104,7 +100,6 @@ export default function DescribeTree({
     }
   }
 
-  // 3. Po cechach lokalizacja
   async function fetchLocations() {
     setLoading(true);
     setError(null);
@@ -146,8 +141,6 @@ export default function DescribeTree({
       localization: selectedPath,
     });
   }
-
-  // -- UI --
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-start bg-[#090C2A] py-6">
