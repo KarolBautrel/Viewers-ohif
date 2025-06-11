@@ -1,0 +1,39 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  GIT_SSL_NO_VERIFY: "true"
+
+  OHIF_IMAGE_NAME: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}
+  OHIF_CONTAINER_NAME: "OHIF"
+
+Build OHIF Viewer:
+  stage: build
+  tags:
+    - build
+  only:
+    - develop
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    - docker build
+      -t $OHIF_IMAGE_NAME
+      -f Dockerfile .
+    - docker push $OHIF_IMAGE_NAME
+
+Deploy OHIF Viewer:
+  stage: deploy
+  tags:
+    - deploy
+  only:
+    - develop
+
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    - docker pull $OHIF_IMAGE_NAME
+    - docker stop $OHIF_CONTAINER_NAME || true
+    - docker rm $OHIF_CONTAINER_NAME || true
+    - docker run --name $OHIF_CONTAINER_NAME -d
+      $OHIF_IMAGE_NAME
