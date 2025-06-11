@@ -6,7 +6,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '../../components/DropdownMenu';
-import DescribeModal from '../DescribeModal/index';
 import { Icons } from '../../components/Icons/Icons';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../../components/Tooltip/Tooltip';
 
@@ -128,7 +127,6 @@ const DataRow: React.FC<DataRowProps> = ({
     txt.innerHTML = html;
     return txt.value;
   };
-
 
   const renderDetailText = (text: string, indent: number = 0) => {
     const indentation = '  '.repeat(indent);
@@ -348,62 +346,56 @@ const DataRow: React.FC<DataRowProps> = ({
         </div>
       )}
       <div className="ml-7 px-2 py-1">
-  {measurementDescription?.description &&
-  Array.isArray(measurementDescription.description.cechy) &&
-  measurementDescription.description.cechy.length > 0 ? (
-    <div>
-      <div className="flex flex-wrap items-center gap-2 mb-2">
-        <span className="text-secondary-foreground font-semibold">Cechy:</span>
-        {measurementDescription.description.cechy.map((d, idx, arr) => (
-          <React.Fragment key={d.id || d.name + idx}>
-            <span
-              className={`
-                rounded-2xl px-3 py-1 text-sm font-medium
-                bg-[#23274a] text-white
-              `}
-            >
-              {d.name}
-            </span>
-            {idx !== arr.length - 1 && (
-              <span className="mx-1 text-xl text-[#888]">→</span>
+        {measurementDescription?.description &&
+        Array.isArray(measurementDescription.description.cechy) &&
+        measurementDescription.description.cechy.length > 0 ? (
+          <div>
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              <span className="text-secondary-foreground font-semibold">Cechy:</span>
+              {measurementDescription.description.cechy.map((d, idx, arr) => (
+                <React.Fragment key={d.id || d.name + idx}>
+                  <span
+                    className={`rounded-2xl bg-[#23274a] px-3 py-1 text-sm font-medium text-white`}
+                  >
+                    {d.name}
+                  </span>
+                  {idx !== arr.length - 1 && <span className="mx-1 text-xl text-[#888]">→</span>}
+                </React.Fragment>
+              ))}
+            </div>
+            {measurementDescription.description.wnioski?.length > 0 && (
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <span className="font-semibold text-pink-300">Wnioski:</span>
+                {measurementDescription.description.wnioski.map((w, idx) => (
+                  <span
+                    key={w.id || w.name + idx}
+                    className="rounded-2xl bg-pink-900 px-3 py-1 text-sm font-medium text-pink-200"
+                  >
+                    {w.name}
+                  </span>
+                ))}
+              </div>
             )}
-          </React.Fragment>
-        ))}
+            {measurementDescription.description.rozpoznania?.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold text-[#ffdcb0]">Rozpoznania:</span>
+                {measurementDescription.description.rozpoznania.map((r, idx) => (
+                  <span
+                    key={r.id || r.name + idx}
+                    className="rounded-2xl bg-[#653828] px-3 py-1 text-sm font-medium text-[#ffdcb0]"
+                  >
+                    {r.name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-secondary-foreground text-base">
+            <strong>Brak opisu</strong>
+          </div>
+        )}
       </div>
-      {measurementDescription.description.wnioski?.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 mb-2">
-          <span className="text-pink-300 font-semibold">Wnioski:</span>
-          {measurementDescription.description.wnioski.map((w, idx) => (
-            <span
-              key={w.id || w.name + idx}
-              className="rounded-2xl px-3 py-1 text-sm font-medium bg-pink-900 text-pink-200"
-            >
-              {w.name}
-            </span>
-          ))}
-        </div>
-      )}
-      {measurementDescription.description.rozpoznania?.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[#ffdcb0] font-semibold">Rozpoznania:</span>
-          {measurementDescription.description.rozpoznania.map((r, idx) => (
-            <span
-              key={r.id || r.name + idx}
-              className="rounded-2xl px-3 py-1 text-sm font-medium bg-[#653828] text-[#ffdcb0]"
-            >
-              {r.name}
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
-  ) : (
-    <div className="text-secondary-foreground text-base">
-      <strong>Brak opisu</strong>
-    </div>
-  )}
-</div>
-
 
       {/* Localization */}
       <div className="ml-7 px-2 py-1">

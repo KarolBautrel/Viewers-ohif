@@ -3,8 +3,10 @@ import { utils } from '@ohif/core';
 import { MeasurementTable } from '@ohif/ui-next';
 import debounce from 'lodash.debounce';
 import { useMeasurements } from '../hooks/useMeasurements';
-import { DescribeTree } from '../../../../platform/ui-next/src/components/DescribeTree/index'; //zmienisz sobie sciezke
-import DescribeModal from '../../../../platform/ui-next/src/components/DescribeModal/index'; //zmienisz sobie sciezke
+import { DescribeTree } from '../../../../platform/ui-next/src/components/DescribeTree/index'; //zmienie sobie sciezke
+import { DescribeModal } from '../../../../platform/ui-next/src/components/DescribeModal/index'; //zmienie sobie sciezke
+import { MeasurementModal } from '../../../../platform/ui-next/src/components/DescribeModal/index';
+
 import { ReferralDataSelector } from '../../../../platform/ui-next/src/components/ReferralDataSelector/index';
 
 const { filterAdditionalFindings: filterAdditionalFinding, filterAny } = utils.MeasurementFilters;
@@ -47,6 +49,7 @@ export default function PanelMeasurement({
   const [referralData, setReferralData] = useState<string[]>([]);
   const [circumstancesData, setCircumstancesData] = useState<string[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
+  const [showJSONModal, setShowJSONModal] = useState(false);
 
   const [describeMode, setDescribeMode] = useState<{ uid: string } | null>(null);
   const [userHasSelected, setUserHasSelected] = useState(false);
@@ -55,6 +58,10 @@ export default function PanelMeasurement({
   const displayMeasurements = useMeasurements(servicesManager, {
     measurementFilter,
   });
+
+  const handleRaportJson = () => {
+    setShowJSONModal(true);
+  };
 
   useEffect(() => {
     if (displayMeasurements.length > 0 && measurementsPanelRef.current) {
@@ -153,7 +160,11 @@ export default function PanelMeasurement({
         onDescribe={handleModalDescribe}
         forceModal={!userHasSelected}
       />
-
+      <MeasurementModal
+        isOpen={showJSONModal}
+        onClose={() => setShowJSONModal(false)}
+        data={displayMeasurements}
+      />
       {describeMode ? (
         <div className="flex h-full w-full flex-col">
           <div className="bg-muted flex-1 overflow-auto p-4">
@@ -187,7 +198,14 @@ export default function PanelMeasurement({
             // NEW:
             onOpenModal={handleOpenModalWithConfirm}
           />
-
+          <div className="flex justify-end px-2">
+            <button
+              className="rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600"
+              onClick={handleRaportJson}
+            >
+              Wyswietl json z raportem
+            </button>
+          </div>
           <MeasurementTable
             key="tracked"
             title="Measurements"

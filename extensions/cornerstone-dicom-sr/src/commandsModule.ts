@@ -98,26 +98,26 @@ const commandsModule = (props: withAppTypes) => {
       options = {},
     }) => {
       OHIF.log.info('[REST] storeMeasurements (custom REST endpoint)');
-      // console.log(JSON.stringify(measurementData));
-      try {
-        const response = await fetch('http://localhost:8001/api/neo/measurement/create', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(measurementData),
-        });
+      console.log(JSON.stringify(measurementData));
+      // try {
+      //   const response = await fetch('http://localhost:8001/api/neo/measurement/create', {
+      //     method: 'POST',
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //     },
+      //     body: JSON.stringify(measurementData),
+      //   });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const result = await response.json();
-        OHIF.log.info('[REST] storeMeasurements – odpowiedź z backendu:', result);
-        return result;
-      } catch (error) {
-        OHIF.log.error(`[REST] Error podczas wysyłania measurements: ${error.message}`);
-        throw new Error(error.message || 'Error while sending the measurements.');
-      }
+      //   if (!response.ok) {
+      //     throw new Error(`HTTP error! status: ${response.status}`);
+      //   }
+      //   const result = await response.json();
+      //   OHIF.log.info('[REST] storeMeasurements – odpowiedź z backendu:', result);
+      //   return result;
+      // } catch (error) {
+      //   OHIF.log.error(`[REST] Error podczas wysyłania measurements: ${error.message}`);
+      //   throw new Error(error.message || 'Error while sending the measurements.');
+      // }
     },
 
     /**
