@@ -45,7 +45,6 @@ export default function PanelMeasurement({
 }: withAppAndFilters): React.ReactNode {
   const measurementsPanelRef = useRef(null);
 
-  // Globalny state dla danych ze skierowania i warunków
   const [referralData, setReferralData] = useState<string[]>([]);
   const [circumstancesData, setCircumstancesData] = useState<string[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -58,12 +57,19 @@ export default function PanelMeasurement({
   const displayMeasurements = useMeasurements(servicesManager, {
     measurementFilter,
   });
-  const { sendMessage } = useWebSocketSender('ws://localhost:1234/ws');
+  const { sendMessage } = useWebSocketSender('ws://localhost:8001/ws/');
 
   const handleRaportJson = () => {
     setShowJSONModal(true);
   };
-
+  useEffect(() => {
+    if (describeMode === null && displayMeasurements.length > 0) {
+      const recentlyDescribed = displayMeasurements.find(m => m.description?.localization);
+      if (recentlyDescribed) {
+        sendMessage(displayMeasurements);
+      }
+    }
+  }, [displayMeasurements, describeMode]);
   useEffect(() => {
     if (displayMeasurements.length > 0 && measurementsPanelRef.current) {
       debounce(() => {
@@ -101,9 +107,21 @@ export default function PanelMeasurement({
     item => additionalFilter(item) && measurementFilter(item)
   );
 
-  const handleSendSocketMessage = () => {
-    sendMessage(displayMeasurements);
+  const handleSendSocketMessage = (description, uid) => {
+    // const updatedMeasurements = displayMeasurements.map(m => {
+    //   if (m.uid === uid) {
+    //     return {
+    //       ...m,
+    //       description: {
+    //         ...description,
+    //       },
+    //     };
+    //   }
+    //   return m;
+    // });
+    //sendMessage(updatedMeasurements);
   };
+
   const onArgs = {
     onClick: jumpToImage,
     onDelete: removeMeasurement,
@@ -113,7 +131,6 @@ export default function PanelMeasurement({
     onDescribe: (uid, _desc) => setDescribeMode({ uid }),
   };
 
-  // Obsługa submitu modala
   function handleModalDescribe({ skierowanie, warunki }) {
     setReferralData(skierowanie);
     setCircumstancesData(warunki);
@@ -151,7 +168,6 @@ export default function PanelMeasurement({
         setUserHasSelected(false);
         setModalOpen(true);
       }
-      // jeśli NIE - nie rób nic
     } else {
       setModalOpen(true);
     }
@@ -211,6 +227,7 @@ export default function PanelMeasurement({
               Wyswietl json z raportem
             </button>
           </div>
+
           <MeasurementTable
             key="tracked"
             title="Measurements"

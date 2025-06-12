@@ -1,10 +1,6 @@
 import React, { useState } from 'react';
 
-export default function FeatureTree({
-  data,
-  onDone,
-  onBack,
-}) {
+export default function FeatureTree({ data, onDone, onBack }) {
   const [path, setPath] = useState<string[]>([]);
   const [selected, setSelected] = useState<any[]>([]);
 
@@ -96,6 +92,14 @@ export default function FeatureTree({
       type: node.type || 'cecha',
       step: idx + 1,
     }));
+    const objawRoot = data?.[0];
+    const objaw = objawRoot
+      ? {
+          name: objawRoot.name,
+          uuid: objawRoot.uuid || objawRoot.element_id_property || objawRoot.id,
+          type: objawRoot.type || 'objaw',
+        }
+      : null;
 
     const { wnioski, rozpoznania } = extractFinalSuggestions(currentNode);
 
@@ -103,98 +107,105 @@ export default function FeatureTree({
       cechy,
       wnioski,
       rozpoznania,
+      objaw,
     });
   }
 
   return (
-    <div className="flex flex-col gap-4 w-full">
+    <div className="flex w-full flex-col gap-4">
       <div className="flex flex-row items-center gap-2">
-        <span className="font-semibold text-[#C9C9C9] text-lg">Wybierz cechę</span>
+        <span className="text-lg font-semibold text-[#C9C9C9]">Wybierz cechę</span>
         {(path.length > 0 || selected.length > 0) && (
-          <button className="ml-auto text-xs bg-[#23274a] text-white px-3 py-1 rounded"
-            onClick={goBack}>Wróć</button>
+          <button
+            className="ml-auto rounded bg-[#23274a] px-3 py-1 text-xs text-white"
+            onClick={goBack}
+          >
+            Wróć
+          </button>
         )}
       </div>
       {selected.length > 0 && (
-  <>
-    <div className="flex flex-wrap gap-2 mb-1">
-      {selected.map((n, i) => (
-        <span key={n.element_id_property || n.name}
-          className="bg-[#23274a] text-white rounded-xl px-3 py-1 text-xs font-medium">
-          {n.name}
-          {i !== selected.length - 1 && (
-            <span className="mx-1 text-gray-400">➝</span>
-          )}
-        </span>
-      ))}
-    </div>
-    {/* ---- INFO PANEL ---- */}
-    <div className="flex flex-col gap-2 my-3 w-full">
-      {/* WNIOSKI */}
-      {extractFinalSuggestions(currentNode).wnioski.length > 0 && (
-        <div>
-          <div className="font-semibold text-pink-300 mb-1 text-xs">Wnioski</div>
-          <div className="flex flex-col gap-1">
-            {extractFinalSuggestions(currentNode).wnioski.map(w =>
-              <div
-                key={w.id}
-                className="flex items-center rounded bg-pink-900/50 text-pink-100 px-3 py-1 text-xs font-medium"
+        <>
+          <div className="mb-1 flex flex-wrap gap-2">
+            {selected.map((n, i) => (
+              <span
+                key={n.element_id_property || n.name}
+                className="rounded-xl bg-[#23274a] px-3 py-1 text-xs font-medium text-white"
               >
-                <span>{w.name}</span>
-                <span className="ml-2 text-pink-300 opacity-70">
-                  {w.weight && `(waga: ${w.weight})`}
-                </span>
+                {n.name}
+                {i !== selected.length - 1 && <span className="mx-1 text-gray-400">➝</span>}
+              </span>
+            ))}
+          </div>
+          <div className="my-3 flex w-full flex-col gap-2">
+            {extractFinalSuggestions(currentNode).wnioski.length > 0 && (
+              <div>
+                <div className="mb-1 text-xs font-semibold text-pink-300">Wnioski</div>
+                <div className="flex flex-col gap-1">
+                  {extractFinalSuggestions(currentNode).wnioski.map(w => (
+                    <div
+                      key={w.id}
+                      className="flex items-center rounded bg-pink-900/50 px-3 py-1 text-xs font-medium text-pink-100"
+                    >
+                      <span>{w.name}</span>
+                      <span className="ml-2 text-pink-300 opacity-70">
+                        {w.weight && `(waga: ${w.weight})`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {extractFinalSuggestions(currentNode).rozpoznania.length > 0 && (
+              <div>
+                <div className="mb-1 text-xs font-semibold text-[#eeb980]">
+                  Rozpoznania różnicowe
+                </div>
+                <div className="flex flex-col gap-1">
+                  {extractFinalSuggestions(currentNode).rozpoznania.map(r => (
+                    <div
+                      key={r.id}
+                      className="flex items-center rounded bg-[#653828]/80 px-3 py-1 text-xs font-medium text-[#eeb980]"
+                    >
+                      <span>{r.name}</span>
+                      <span className="ml-2 opacity-80">{r.weight && `(waga: ${r.weight})`}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
-        </div>
+        </>
       )}
-      {/* ROZPOZNANIA */}
-      {extractFinalSuggestions(currentNode).rozpoznania.length > 0 && (
-        <div>
-          <div className="font-semibold text-[#eeb980] mb-1 text-xs">Rozpoznania różnicowe</div>
-          <div className="flex flex-col gap-1">
-            {extractFinalSuggestions(currentNode).rozpoznania.map(r =>
-              <div
-                key={r.id}
-                className="flex items-center rounded bg-[#653828]/80 text-[#eeb980] px-3 py-1 text-xs font-medium"
-              >
-                <span>{r.name}</span>
-                <span className="ml-2 opacity-80">
-                  {r.weight && `(waga: ${r.weight})`}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-    {/* ---- END INFO PANEL ---- */}
-  </>
-)}
 
       {currentLevel.length > 0 && (
         <>
-          <div className="text-[#C9C9C9] text-xs mb-1">Cechy</div>
+          <div className="mb-1 text-xs text-[#C9C9C9]">Cechy</div>
           <div className="flex flex-col gap-2">
             {currentLevel.map((node: any) => (
               <button
                 key={node.element_id_property}
-                className="bg-[#23274a] hover:bg-[#2d314f] text-white rounded px-3 py-2 font-semibold text-sm"
+                className="rounded bg-[#23274a] px-3 py-2 text-sm font-semibold text-white hover:bg-[#2d314f]"
                 onClick={() => handleSelectCecha(node)}
-              >{node.name}</button>
+              >
+                {node.name}
+              </button>
             ))}
           </div>
         </>
       )}
       {selected.length > 0 && (
-        <button className="mt-4 w-full bg-[#00BFD9] hover:bg-[#14d6f8] text-black font-bold py-2 rounded"
-          onClick={finishSelection}>
+        <button
+          className="mt-4 w-full rounded bg-[#00BFD9] py-2 font-bold text-black hover:bg-[#14d6f8]"
+          onClick={finishSelection}
+        >
           Zakończ wybór
         </button>
       )}
-      <button className="mt-3 w-full text-xs bg-[#23274a] text-[#C9C9C9] py-2 rounded"
-        onClick={resetAll}>
+      <button
+        className="mt-3 w-full rounded bg-[#23274a] py-2 text-xs text-[#C9C9C9]"
+        onClick={resetAll}
+      >
         Reset
       </button>
     </div>
