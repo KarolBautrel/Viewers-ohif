@@ -17,7 +17,6 @@ export default function DescribeTree({
   measurements,
   uid,
   referralData,
-  onSocketMessage,
 }: {
   onSelect: (desc: Record<string, any>) => void;
   onCancel: () => void;
@@ -25,7 +24,6 @@ export default function DescribeTree({
   uid: string;
   referralData: string[];
   circumstancecData: string[];
-  onSocketMessage: (socketMessage: Record<string, any>, uid: string) => void;
 }) {
   const [step, setStep] = useState<'circumstances' | 'form' | 'features' | 'locations'>('form');
   const [featureData, setFeatureData] = useState<CechaNode[] | null>(null);
@@ -139,7 +137,6 @@ export default function DescribeTree({
     setDescribeResult(r => ({ ...r, localization: selectedPath }));
     const finalDes = { ...describeResult, localization: selectedPath };
     onSelect(finalDes);
-    onSocketMessage(finalDes, uid);
   }
 
   return (

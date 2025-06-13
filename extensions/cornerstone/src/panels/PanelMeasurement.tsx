@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { utils } from '@ohif/core';
 import { MeasurementTable } from '@ohif/ui-next';
 import debounce from 'lodash.debounce';
@@ -57,17 +57,31 @@ export default function PanelMeasurement({
   const displayMeasurements = useMeasurements(servicesManager, {
     measurementFilter,
   });
-  const { sendMessage } = useWebSocketSender('ws://localhost:8001/ws/');
+
+  const handleWsMessage = useCallback(
+    (data: any) => {
+      if (data?.action === 'DELETE' && typeof data.uid === 'string') {
+        measurementService.remove(data.uid);
+      }
+    },
+    [measurementService]
+  );
+
+  const { sendMessage } = useWebSocketSender('ws://localhost:8001/ws/', handleWsMessage);
 
   const handleRaportJson = () => {
     setShowJSONModal(true);
   };
   useEffect(() => {
-    if (describeMode === null && displayMeasurements.length > 0) {
-      const recentlyDescribed = displayMeasurements.find(m => m.description?.localization);
-      if (recentlyDescribed) {
-        sendMessage(displayMeasurements);
-      }
+    if (displayMeasurements) {
+      // Musze to przemyslec
+      // const recentlyDescribed = displayMeasurements.find(m => m.description?.localization);
+      // if (recentlyDescribed) {
+      sendMessage({
+        action: 'MEASUREMENT',
+        data: displayMeasurements,
+      });
+      // }
     }
   }, [displayMeasurements, describeMode]);
   useEffect(() => {
@@ -106,21 +120,6 @@ export default function PanelMeasurement({
   const additionalFindings = displayMeasurements.filter(
     item => additionalFilter(item) && measurementFilter(item)
   );
-
-  const handleSendSocketMessage = (description, uid) => {
-    // const updatedMeasurements = displayMeasurements.map(m => {
-    //   if (m.uid === uid) {
-    //     return {
-    //       ...m,
-    //       description: {
-    //         ...description,
-    //       },
-    //     };
-    //   }
-    //   return m;
-    // });
-    //sendMessage(updatedMeasurements);
-  };
 
   const onArgs = {
     onClick: jumpToImage,
@@ -202,7 +201,6 @@ export default function PanelMeasurement({
               measurements={measurements}
               referralData={referralData}
               circumstancecData={circumstancesData}
-              onSocketMessage={handleSendSocketMessage}
             />
           </div>
         </div>

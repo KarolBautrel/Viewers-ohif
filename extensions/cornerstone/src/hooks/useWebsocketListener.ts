@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 
-export function useWebSocketSender(url: string) {
+export function useWebSocketSender(url: string, onMessage?: (data: any) => void) {
   const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -19,13 +19,19 @@ export function useWebSocketSender(url: string) {
     };
 
     ws.current.onmessage = event => {
-      console.log('Odebrano wiadomość:', event.data);
+      try {
+        const data = JSON.parse(event.data);
+        console.log('Odebrano wiadomość:', data);
+        onMessage?.(data);
+      } catch (e) {
+        console.error('Nieprawidłowy JSON w wiadomości', event.data);
+      }
     };
 
     return () => {
       ws.current?.close();
     };
-  }, [url]);
+  }, [url, onMessage]);
 
   const sendMessage = useCallback((data: any) => {
     if (ws.current?.readyState === WebSocket.OPEN) {
