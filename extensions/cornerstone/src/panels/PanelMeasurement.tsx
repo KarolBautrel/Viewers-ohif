@@ -7,6 +7,7 @@ import { DescribeTree } from '../../../../platform/ui-next/src/components/Descri
 import { DescribeModal } from '../../../../platform/ui-next/src/components/DescribeModal/index'; //zmienie sobie sciezke
 import { MeasurementModal } from '../../../../platform/ui-next/src/components/DescribeModal/index';
 import { useWebSocketSender } from '../hooks/useWebsocketListener';
+import { useBroadcastChannelSender } from '../hooks/useBroadcastChannelSender';
 import { ReferralDataSelector } from '../../../../platform/ui-next/src/components/ReferralDataSelector/index';
 
 const { filterAdditionalFindings: filterAdditionalFinding, filterAny } = utils.MeasurementFilters;
@@ -60,6 +61,7 @@ export default function PanelMeasurement({
 
   const handleWsMessage = useCallback(
     (data: any) => {
+      console.log('WS MESSAGE ', data);
       if (data?.action === 'DELETE' && typeof data.uid === 'string') {
         measurementService.remove(data.uid);
       }
@@ -67,7 +69,7 @@ export default function PanelMeasurement({
     [measurementService]
   );
 
-  const { sendMessage } = useWebSocketSender('ws://localhost:8001/ws/', handleWsMessage);
+  const { sendMessage } = useBroadcastChannelSender('radiology-channel', handleWsMessage);
 
   const handleRaportJson = () => {
     setShowJSONModal(true);
@@ -77,9 +79,11 @@ export default function PanelMeasurement({
       // Musze to przemyslec
       // const recentlyDescribed = displayMeasurements.find(m => m.description?.localization);
       // if (recentlyDescribed) {
+      const jsonTest = JSON.stringify(displayMeasurements);
+      // console.log('PRzed wyslaniem', jsonTest);
       sendMessage({
         action: 'MEASUREMENT',
-        data: displayMeasurements,
+        data: jsonTest,
       });
       // }
     }
