@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { utils } from '@ohif/core';
 import { MeasurementTable } from '@ohif/ui-next';
 import debounce from 'lodash.debounce';
@@ -6,7 +6,8 @@ import { useMeasurements } from '../hooks/useMeasurements';
 import { DescribeTree } from '../../../../platform/ui-next/src/components/DescribeTree/index'; //zmienie sobie sciezke
 import { DescribeModal } from '../../../../platform/ui-next/src/components/DescribeModal/index'; //zmienie sobie sciezke
 import { MeasurementModal } from '../../../../platform/ui-next/src/components/DescribeModal/index';
-
+import { useWebSocketSender } from '../hooks/useWebsocketListener';
+import { useBroadcastChannelSender } from '../hooks/useBroadcastChannelSender';
 import { ReferralDataSelector } from '../../../../platform/ui-next/src/components/ReferralDataSelector/index';
 
 const { filterAdditionalFindings: filterAdditionalFinding, filterAny } = utils.MeasurementFilters;
@@ -16,6 +17,8 @@ export type withAppAndFilters = withAppTypes & {
 };
 
 export const DANE_ZE_SKIEROWANIA = [
+  ///NA POTRZEBY PREZENTACYJNE, ZROBIMY ENDPOINT KTORY BEDZIE POBIERAL TO
+
   'nikotynizm',
   'nowotwór złośliwy w wywiadzie',
   'pacjent w immunosupresji',
@@ -45,7 +48,6 @@ export default function PanelMeasurement({
 }: withAppAndFilters): React.ReactNode {
   const measurementsPanelRef = useRef(null);
 
-  // Globalny state dla danych ze skierowania i warunków
   const [referralData, setReferralData] = useState<string[]>([]);
   const [circumstancesData, setCircumstancesData] = useState<string[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -59,10 +61,35 @@ export default function PanelMeasurement({
     measurementFilter,
   });
 
+  const handleWsMessage = useCallback(
+    (data: any) => {
+      console.log('WS MESSAGE ', data);
+      if (data?.action === 'DELETE' && typeof data.uid === 'string') {
+        measurementService.remove(data.uid);
+      }
+    },
+    [measurementService]
+  );
+
+  const { sendMessage } = useBroadcastChannelSender('radiology-channel', handleWsMessage);
+
   const handleRaportJson = () => {
     setShowJSONModal(true);
   };
-
+  useEffect(() => {
+    if (displayMeasurements) {
+      // Musze to przemyslec
+      // const recentlyDescribed = displayMeasurements.find(m => m.description?.localization);
+      // if (recentlyDescribed) {
+      const jsonTest = JSON.stringify(displayMeasurements);
+      // console.log('PRzed wyslaniem', jsonTest);
+      sendMessage({
+        action: 'MEASUREMENT',
+        data: jsonTest,
+      });
+      // }
+    }
+  }, [displayMeasurements, describeMode]);
   useEffect(() => {
     if (displayMeasurements.length > 0 && measurementsPanelRef.current) {
       debounce(() => {
@@ -109,7 +136,6 @@ export default function PanelMeasurement({
     onDescribe: (uid, _desc) => setDescribeMode({ uid }),
   };
 
-  // Obsługa submitu modala
   function handleModalDescribe({ skierowanie, warunki }) {
     setReferralData(skierowanie);
     setCircumstancesData(warunki);
@@ -147,7 +173,6 @@ export default function PanelMeasurement({
         setUserHasSelected(false);
         setModalOpen(true);
       }
-      // jeśli NIE - nie rób nic
     } else {
       setModalOpen(true);
     }
@@ -173,8 +198,8 @@ export default function PanelMeasurement({
               onSelect={description => {
                 describeMeasurement(describeMode.uid, {
                   ...description,
-                  skierowanie: referralData,
-                  warunki: circumstancesData,
+                  referral: referralData,
+                  circumstances: circumstancesData,
                 });
                 setDescribeMode(null);
               }}
@@ -206,6 +231,7 @@ export default function PanelMeasurement({
               Wyswietl json z raportem
             </button>
           </div>
+
           <MeasurementTable
             key="tracked"
             title="Measurements"

@@ -17,7 +17,6 @@ export default function DescribeTree({
   measurements,
   uid,
   referralData,
-  circumstancesData,
 }: {
   onSelect: (desc: Record<string, any>) => void;
   onCancel: () => void;
@@ -74,6 +73,8 @@ export default function DescribeTree({
     setStep('form');
   }
 
+  ///TODO: Zrobic serwis odpowiedzialny za api calle i tam przeniesc logike
+  /// Na surowo jest tutaj na potrzeby POC, w nastepnym releasie juz przeniose
   async function fetchFeatures() {
     setLoading(true);
     setError(null);
@@ -86,7 +87,7 @@ export default function DescribeTree({
       const res = await fetch(`${API_URL}/api/neo/objawy/by-name/cechy/?${params}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ skierowanie_data: referralData }),
+        body: JSON.stringify({ referral_data: referralData }),
       });
 
       if (!res.ok) throw new Error('Błąd pobierania cech');
@@ -136,10 +137,8 @@ export default function DescribeTree({
 
   function handleLocalizationDone(selectedPath: Record<any, any>) {
     setDescribeResult(r => ({ ...r, localization: selectedPath }));
-    onSelect({
-      ...describeResult,
-      localization: selectedPath,
-    });
+    const finalDes = { ...describeResult, localization: selectedPath };
+    onSelect(finalDes);
   }
 
   return (
