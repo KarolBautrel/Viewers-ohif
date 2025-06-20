@@ -73,6 +73,8 @@ export default function DescribeTree({
     setStep('form');
   }
 
+  ///TODO: Zrobic serwis odpowiedzialny za api calle i tam przeniesc logike
+  /// Na surowo jest tutaj na potrzeby POC, w nastepnym releasie juz przeniose
   async function fetchFeatures() {
     setLoading(true);
     setError(null);
