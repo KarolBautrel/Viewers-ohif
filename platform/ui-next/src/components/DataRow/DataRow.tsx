@@ -9,52 +9,6 @@ import {
 import { Icons } from '../../components/Icons/Icons';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../../components/Tooltip/Tooltip';
 
-/**
- * DataRow is a complex UI component that displays a selectable, interactive row with hierarchical data.
- * It's designed to show a numbered item with a title, optional color indicator, and expandable details.
- * The row supports various interactive features like visibility toggling, locking, and contextual actions.
- *
- * @component
- * @example
- * ```tsx
- * <DataRow
- *   number={1}
- *   title="My Item"
- *   details={{
- *     primary: ["Main detail", "  Sub detail"],
- *     secondary: []
- *   }}
- *   isVisible={true}
- *   isLocked={false}
- *   onToggleVisibility={() => {}}
- *   onToggleLocked={() => {}}
- *   onRename={() => {}}
- *   onDelete={() => {}}
- *   onColor={() => {}}
- * />
- * ```
- */
-
-/**
- * Props for the DataRow component
- * @interface DataRowProps
- * @property {number} number - The display number/index of the row
- * @property {string} title - The main text label for the row
- * @property {boolean} disableEditing - When true, prevents rename and delete operations
- * @property {string} [colorHex] - Optional hex color code to display a color indicator
- * @property {Object} [details] - Optional hierarchical details to display below the row
- * @property {string[]} details.primary - Primary details shown immediately below the row
- * @property {string[]} details.secondary - Secondary details (currently unused)
- * @property {boolean} [isSelected] - Whether the row is currently selected
- * @property {() => void} [onSelect] - Callback when the row is clicked/selected
- * @property {boolean} isVisible - Controls the row's visibility state
- * @property {() => void} onToggleVisibility - Callback to toggle visibility
- * @property {boolean} isLocked - Controls the row's locked state
- * @property {() => void} onToggleLocked - Callback to toggle locked state
- * @property {() => void} onRename - Callback when rename is requested
- * @property {() => void} onDelete - Callback when delete is requested
- * @property {() => void} onColor - Callback when color change is requested
- */
 interface DataRowProps {
   key: string;
   number: number;
@@ -74,7 +28,7 @@ interface DataRowProps {
   onColor: () => void;
   onDescribe?: (uid: string, description: string) => void;
   measurementUID: string;
-  measurementDescription: Record<string, string>;
+  measurementDescription: any;
 }
 
 const DataRow: React.FC<DataRowProps> = ({
@@ -198,10 +152,8 @@ const DataRow: React.FC<DataRowProps> = ({
         onClick={onSelect}
         data-cy="data-row"
       >
-        {/* Hover Overlay */}
         <div className="bg-primary/20 pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100"></div>
 
-        {/* Number Box */}
         <div
           className={`flex h-7 max-h-7 w-7 flex-shrink-0 items-center justify-center rounded-l border-r border-black text-base ${
             isSelected ? 'bg-highlight text-black' : 'bg-muted text-muted-foreground'
@@ -210,7 +162,6 @@ const DataRow: React.FC<DataRowProps> = ({
           {number}
         </div>
 
-        {/* Color Circle (Optional) */}
         {colorHex && (
           <div className="flex h-7 w-5 items-center justify-center">
             <span
@@ -220,7 +171,6 @@ const DataRow: React.FC<DataRowProps> = ({
           </div>
         )}
 
-        {/* Label with Conditional Tooltip */}
         <div className="ml-2 flex-1 overflow-hidden">
           {isTitleLong ? (
             <Tooltip>
@@ -251,9 +201,7 @@ const DataRow: React.FC<DataRowProps> = ({
           )}
         </div>
 
-        {/* Actions and Visibility Toggle */}
         <div className="relative ml-2 flex items-center space-x-1">
-          {/* Visibility Toggle Icon */}
           <Button
             size="icon"
             variant="ghost"
@@ -269,10 +217,8 @@ const DataRow: React.FC<DataRowProps> = ({
             {isVisible ? <Icons.Hide className="h-6 w-6" /> : <Icons.Show className="h-6 w-6" />}
           </Button>
 
-          {/* Lock Icon (if needed) */}
           {isLocked && !disableEditing && <Icons.Lock className="text-muted-foreground h-6 w-6" />}
 
-          {/* Actions Dropdown Menu */}
           {disableEditing && <div className="h-6 w-6"></div>}
           {!disableEditing && (
             <DropdownMenu onOpenChange={open => setIsDropdownOpen(open)}>
@@ -286,53 +232,43 @@ const DataRow: React.FC<DataRowProps> = ({
                       : 'opacity-0 group-hover:opacity-100'
                   }`}
                   aria-label="Actions"
-                  onClick={e => e.stopPropagation()} // Prevent row selection on button click
+                  onClick={e => e.stopPropagation()}
                 >
                   <Icons.More className="h-6 w-6" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                // this was causing issue for auto focus on input dialog
                 onCloseAutoFocus={e => e.preventDefault()}
               >
-                <>
-                  <DropdownMenuItem onClick={e => handleAction('Rename', e)}>
-                    <Icons.Rename className="text-foreground" />
-                    <span className="pl-2">Rename</span>
+                <DropdownMenuItem onClick={e => handleAction('Rename', e)}>
+                  <Icons.Rename className="text-foreground" />
+                  <span className="pl-2">Rename</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={e => handleAction('Delete', e)}>
+                  <Icons.Delete className="text-foreground" />
+                  <span className="pl-2">Delete</span>
+                </DropdownMenuItem>
+                {onColor && (
+                  <DropdownMenuItem onClick={e => handleAction('Color', e)}>
+                    <Icons.ColorChange className="text-foreground" />
+                    <span className="pl-2">Change Color</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={e => handleAction('Delete', e)}>
-                    <Icons.Delete className="text-foreground" />
-                    <span className="pl-2">Delete</span>
-                  </DropdownMenuItem>
-                  {onColor && (
-                    <DropdownMenuItem onClick={e => handleAction('Color', e)}>
-                      <Icons.ColorChange className="text-foreground" />
-                      <span className="pl-2">Change Color</span>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem onClick={e => handleAction('Lock', e)}>
-                    <Icons.Lock className="text-foreground" />
-                    <span className="pl-2">{isLocked ? 'Unlock' : 'Lock'}</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={e => handleAction('Describe', e)}>
-                    <Icons.Info className="text-foreground" />
-                    <span className="pl-2">{'Describe'}</span>
-                  </DropdownMenuItem>
-                </>
+                )}
+                <DropdownMenuItem onClick={e => handleAction('Lock', e)}>
+                  <Icons.Lock className="text-foreground" />
+                  <span className="pl-2">{isLocked ? 'Unlock' : 'Lock'}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={e => handleAction('Describe', e)}>
+                  <Icons.Info className="text-foreground" />
+                  <span className="pl-2">Describe</span>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           )}
         </div>
       </div>
-      {/* <DescribeModal
-        isOpen={isDescribeModalOpen}
-        onClose={() => setDescribeModalOpen(false)}
-        onDescribe={onDescribe}
-        uid={measurementUID}
-      /> */}
 
-      {/* Details Section */}
       {details && (details.primary?.length > 0 || details.secondary?.length > 0) && (
         <div className="ml-7 px-2 py-2">
           <div className="text-secondary-foreground flex items-center gap-1 text-base leading-normal">
@@ -345,50 +281,53 @@ const DataRow: React.FC<DataRowProps> = ({
           </div>
         </div>
       )}
+
       <div className="ml-7 px-2 py-1">
         {measurementDescription?.description &&
-        Array.isArray(measurementDescription.description.cechy) &&
-        measurementDescription.description.cechy.length > 0 ? (
+        Array.isArray(measurementDescription.description.features) &&
+        measurementDescription.description.features.length > 0 ? (
           <div>
             <div className="mb-2 flex flex-wrap items-center gap-2">
               <span className="text-secondary-foreground font-semibold">Cechy:</span>
-              {measurementDescription.description.cechy.map((d, idx, arr) => (
-                <React.Fragment key={d.id || d.name + idx}>
-                  <span
-                    className={`rounded-2xl bg-[#23274a] px-3 py-1 text-sm font-medium text-white`}
-                  >
-                    {d.name}
+              {measurementDescription.description.features.map((feature, idx, arr) => (
+                <React.Fragment key={feature.uuid || feature.name + idx}>
+                  <span className="rounded-2xl bg-[#23274a] px-3 py-1 text-sm font-medium text-white">
+                    {feature.name}
                   </span>
                   {idx !== arr.length - 1 && <span className="mx-1 text-xl text-[#888]">→</span>}
                 </React.Fragment>
               ))}
             </div>
-            {measurementDescription.description.wnioski?.length > 0 && (
-              <div className="mb-2 flex flex-wrap items-center gap-2">
-                <span className="font-semibold text-pink-300">Wnioski:</span>
-                {measurementDescription.description.wnioski.map((w, idx) => (
-                  <span
-                    key={w.id || w.name + idx}
-                    className="rounded-2xl bg-pink-900 px-3 py-1 text-sm font-medium text-pink-200"
-                  >
-                    {w.name}
-                  </span>
-                ))}
-              </div>
-            )}
-            {measurementDescription.description.rozpoznania?.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-semibold text-[#ffdcb0]">Rozpoznania:</span>
-                {measurementDescription.description.rozpoznania.map((r, idx) => (
-                  <span
-                    key={r.id || r.name + idx}
-                    className="rounded-2xl bg-[#653828] px-3 py-1 text-sm font-medium text-[#ffdcb0]"
-                  >
-                    {r.name}
-                  </span>
-                ))}
-              </div>
-            )}
+
+            {Array.isArray(measurementDescription.description.conclusions) &&
+              measurementDescription.description.conclusions.length > 0 && (
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <span className="font-semibold text-pink-300">Wnioski:</span>
+                  {measurementDescription.description.conclusions.map((conclusion, idx) => (
+                    <span
+                      key={conclusion.uuid || conclusion.name + idx}
+                      className="rounded-2xl bg-pink-900 px-3 py-1 text-sm font-medium text-pink-200"
+                    >
+                      {conclusion.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+            {Array.isArray(measurementDescription.description.diagnoses) &&
+              measurementDescription.description.diagnoses.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold text-[#ffdcb0]">Rozpoznania:</span>
+                  {measurementDescription.description.diagnoses.map((diagnosis, idx) => (
+                    <span
+                      key={diagnosis.uuid || diagnosis.name + idx}
+                      className="rounded-2xl bg-[#653828] px-3 py-1 text-sm font-medium text-[#ffdcb0]"
+                    >
+                      {diagnosis.name}
+                    </span>
+                  ))}
+                </div>
+              )}
           </div>
         ) : (
           <div className="text-secondary-foreground text-base">
@@ -397,7 +336,6 @@ const DataRow: React.FC<DataRowProps> = ({
         )}
       </div>
 
-      {/* Localization */}
       <div className="ml-7 px-2 py-1">
         {Array.isArray(measurementDescription?.localization) &&
         measurementDescription.localization.length > 0 ? (
