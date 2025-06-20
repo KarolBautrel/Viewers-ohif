@@ -17,6 +17,8 @@ export type withAppAndFilters = withAppTypes & {
 };
 
 export const DANE_ZE_SKIEROWANIA = [
+  ///NA POTRZEBY PREZENTACYJNE, ZROBIMY ENDPOINT KTORY BEDZIE POBIERAL TO
+
   'nikotynizm',
   'nowotwór złośliwy w wywiadzie',
   'pacjent w immunosupresji',
@@ -196,8 +198,8 @@ export default function PanelMeasurement({
               onSelect={description => {
                 describeMeasurement(describeMode.uid, {
                   ...description,
-                  skierowanie: referralData,
-                  warunki: circumstancesData,
+                  referral: referralData,
+                  circumstances: circumstancesData,
                 });
                 setDescribeMode(null);
               }}

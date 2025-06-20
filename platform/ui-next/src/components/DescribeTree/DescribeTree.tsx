@@ -85,7 +85,7 @@ export default function DescribeTree({
       const res = await fetch(`${API_URL}/api/neo/objawy/by-name/cechy/?${params}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ skierowanie_data: referralData }),
+        body: JSON.stringify({ referral_data: referralData }),
       });
 
       if (!res.ok) throw new Error('Błąd pobierania cech');
