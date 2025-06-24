@@ -294,7 +294,7 @@ const DataRow: React.FC<DataRowProps> = ({
                   <span className="rounded-2xl bg-[#23274a] px-3 py-1 text-sm font-medium text-white">
                     {feature.name}
                   </span>
-                  {idx !== arr.length - 1 && <span className="mx-1 text-xl text-[#888]">→</span>}
+                  {idx !== arr.length - 1}
                 </React.Fragment>
               ))}
             </div>
@@ -339,13 +339,20 @@ const DataRow: React.FC<DataRowProps> = ({
       <div className="ml-7 px-2 py-1">
         {Array.isArray(measurementDescription?.localization) &&
         measurementDescription.localization.length > 0 ? (
-          <div className="text-secondary-foreground text-base">
-            <strong>Lokalizacja:</strong>{' '}
-            {measurementDescription.localization.map(d => d.name).join(' → ')}
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <span className="text-secondary-foreground font-semibold">Lokalizacja:</span>
+            {measurementDescription.localization.map((loc, idx) => (
+              <span
+                key={loc.uuid || loc.name + idx}
+                className="rounded-2xl bg-[#225BA4] px-3 py-1 text-sm font-medium text-white"
+              >
+                {loc.name}
+              </span>
+            ))}
           </div>
         ) : (
           <div className="text-secondary-foreground text-base">
-            <strong>Brak Lokalizacji</strong>
+            <strong>Brak lokalizacji</strong>
           </div>
         )}
       </div>

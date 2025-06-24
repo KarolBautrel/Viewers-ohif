@@ -1,93 +1,66 @@
 import React, { useState } from 'react';
 
 export default function FeatureTree({ data, onDone, onBack }) {
-  const [path, setPath] = useState<string[]>([]);
+  const [pathStack, setPathStack] = useState<any[]>([]);
+  const [currentLevel, setCurrentLevel] = useState([
+    { parentNode: data[0], childNodes: data[0].children_cecha || [] },
+  ]);
   const [selectedNodes, setSelectedNodes] = useState<any[]>([]);
 
-  function getCurrentNode() {
-    if (!data) return null;
-    if (path.length === 0) return data[0];
-    let node = data[0];
-    for (const id of path) {
-      node = (node.children_cecha || []).find((c: any) => c.element_id_property === id) || node;
+  function toggleSelect(node: any, parent: any) {
+    const exists = selectedNodes.find(
+      n => n.node.element_id_property === node.element_id_property && n.parentName === parent.name
+    );
+    if (exists) {
+      setSelectedNodes(prev =>
+        prev.filter(
+          n =>
+            !(
+              n.node.element_id_property === node.element_id_property &&
+              n.parentName === parent.name
+            )
+        )
+      );
+    } else {
+      setSelectedNodes(prev => [...prev, { node, parentName: parent.name }]);
     }
-    return node;
   }
 
-  function extractFinalSuggestions(node) {
-    const conclusions: any[] = [];
-    const diagnoses: any[] = [];
-    if (!node) return { conclusions, diagnoses };
+  function handleNextLevel() {
+    const nextLevel = selectedNodes
+      .flatMap(entry => ({
+        parentNode: entry.node,
+        childNodes: entry.node.children_cecha || [],
+      }))
+      .filter(entry => entry.childNodes.length > 0);
 
-    (node.sugeruje_wnioski ?? []).forEach(w =>
-      conclusions.push({
-        name: w.name,
-        uuid: w.uuid || w.element_id_property || w.id,
-        type: 'wnioski',
-        weight: w.weight ?? 1,
-      })
-    );
-    (node.sugeruje_rozpoznanie ?? []).forEach(r =>
-      diagnoses.push({
-        name: r.name,
-        uuid: r.uuid || r.element_id_property || r.id,
-        type: 'rozpoznanie',
-        weight: r.weight ?? 1,
-      })
-    );
-    (node.suggested_rozpoznanie ?? []).forEach(r =>
-      diagnoses.push({
-        name: r.name,
-        uuid: r.uuid || r.element_id_property || r.id,
-        type: 'rozpoznanie',
-        weight: r.weight ?? 1,
-      })
-    );
-    (node.children_dane_z_pomiaru ?? []).forEach(d => {
-      (d.sugeruje_wnioski ?? []).forEach(w =>
-        conclusions.push({
-          name: w.name,
-          uuid: w.uuid || w.element_id_property || w.id,
-          type: 'wnioski',
-          weight: w.weight ?? 1,
-        })
-      );
-      (d.sugeruje_rozpoznanie ?? []).forEach(r =>
-        diagnoses.push({
-          name: r.name,
-          uuid: r.uuid || r.element_id_property || r.id,
-          type: 'rozpoznanie',
-          weight: r.weight ?? 1,
-        })
-      );
-    });
-
-    conclusions.sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0));
-    diagnoses.sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0));
-    return { conclusions, diagnoses };
-  }
-
-  const currentNode = getCurrentNode();
-  const currentChildren = currentNode?.children_cecha || [];
-
-  function handleSelectFeature(node: any) {
-    setSelectedNodes(prev => [...prev, node]);
-    setPath(prev => [...prev, node.element_id_property]);
+    setPathStack(prev => [...prev, { level: currentLevel, selected: selectedNodes }]);
+    setCurrentLevel(nextLevel);
+    setSelectedNodes([]);
   }
 
   function handleBack() {
-    setPath(prev => prev.slice(0, -1));
-    setSelectedNodes(prev => prev.slice(0, -1));
+    if (pathStack.length === 0) {
+      onBack();
+      return;
+    }
+    const last = pathStack[pathStack.length - 1];
+    setCurrentLevel(last.level);
+    setSelectedNodes(last.selected);
+    setPathStack(prev => prev.slice(0, -1));
   }
 
   function handleReset() {
-    setPath([]);
+    setPathStack([]);
     setSelectedNodes([]);
-    onBack();
+    setCurrentLevel([{ parentNode: data[0], childNodes: data[0].children_cecha || [] }]);
   }
 
   function handleFinish() {
-    const features = selectedNodes.map((node, index) => ({
+    const allSelected = pathStack
+      .flatMap(step => step.selected.map(s => s.node))
+      .concat(selectedNodes.map(s => s.node));
+    const features = allSelected.map((node, index) => ({
       name: node.name,
       uuid: node.uuid || node.element_id_property || node.id,
       type: node.type || 'feature',
@@ -103,21 +76,98 @@ export default function FeatureTree({ data, onDone, onBack }) {
         }
       : null;
 
-    const { conclusions, diagnoses } = extractFinalSuggestions(currentNode);
+    const { conclusions, diagnoses } = extractAllSuggestions(allSelected);
 
-    onDone({
-      features,
-      conclusions,
-      diagnoses,
-      finding,
+    onDone({ features, conclusions, diagnoses, finding });
+  }
+
+  function extractAllSuggestions(selectedNodes: any[]) {
+    const conclusionMap = new Map();
+    const diagnosisMap = new Map();
+
+    selectedNodes.forEach(node => {
+      extractNodeSuggestions(node, conclusionMap, diagnosisMap);
+    });
+
+    const conclusions = Array.from(conclusionMap.values()).sort((a, b) => b.weight - a.weight);
+    const diagnoses = Array.from(diagnosisMap.values()).sort((a, b) => b.weight - a.weight);
+
+    return { conclusions, diagnoses };
+  }
+
+  function extractNodeSuggestions(
+    node: any,
+    conclusionMap: Map<string, any>,
+    diagnosisMap: Map<string, any>
+  ) {
+    (node.sugeruje_wnioski ?? []).forEach(w => {
+      const key = w.name;
+      if (conclusionMap.has(key)) {
+        const existing = conclusionMap.get(key);
+        conclusionMap.set(key, { ...w, weight: existing.weight + 1 });
+      } else {
+        conclusionMap.set(key, { ...w, weight: w.weight ?? 1 });
+      }
+    });
+
+    (node.sugeruje_rozpoznanie ?? []).forEach(r => {
+      const key = r.name;
+      if (diagnosisMap.has(key)) {
+        const existing = diagnosisMap.get(key);
+        diagnosisMap.set(key, { ...r, weight: existing.weight + 1 });
+      } else {
+        diagnosisMap.set(key, { ...r, weight: r.weight ?? 1 });
+      }
+    });
+
+    (node.suggested_rozpoznanie ?? []).forEach(r => {
+      const key = r.name;
+      if (diagnosisMap.has(key)) {
+        const existing = diagnosisMap.get(key);
+        diagnosisMap.set(key, { ...r, weight: existing.weight + 1 });
+      } else {
+        diagnosisMap.set(key, { ...r, weight: r.weight ?? 1 });
+      }
+    });
+
+    (node.children_dane_z_pomiaru ?? []).forEach(d => {
+      (d.sugeruje_wnioski ?? []).forEach(w => {
+        const key = w.name;
+        if (conclusionMap.has(key)) {
+          const existing = conclusionMap.get(key);
+          conclusionMap.set(key, { ...w, weight: existing.weight + 1 });
+        } else {
+          conclusionMap.set(key, { ...w, weight: w.weight ?? 1 });
+        }
+      });
+
+      (d.sugeruje_rozpoznanie ?? []).forEach(r => {
+        const key = r.name;
+        if (diagnosisMap.has(key)) {
+          const existing = diagnosisMap.get(key);
+          diagnosisMap.set(key, { ...r, weight: existing.weight + 1 });
+        } else {
+          diagnosisMap.set(key, { ...r, weight: r.weight ?? 1 });
+        }
+      });
     });
   }
+
+  const allConclusions = extractAllSuggestions(
+    pathStack.flatMap(step => step.selected.map(s => s.node)).concat(selectedNodes.map(s => s.node))
+  ).conclusions;
+
+  const allDiagnoses = extractAllSuggestions(
+    pathStack.flatMap(step => step.selected.map(s => s.node)).concat(selectedNodes.map(s => s.node))
+  ).diagnoses;
+
+  const hasNextLevel = selectedNodes.some(entry => (entry.node.children_cecha || []).length > 0);
 
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="flex flex-row items-center gap-2">
-        <span className="text-lg font-semibold text-[#C9C9C9]">Wybierz cechę</span>
-        {(path.length > 0 || selectedNodes.length > 0) && (
+        <span className="text-lg font-semibold text-[#C9C9C9]">Wybierz cechy</span>
+        {pathStack.length > 0 && (
           <button
             className="ml-auto rounded bg-[#23274a] px-3 py-1 text-xs text-white"
             onClick={handleBack}
@@ -127,84 +177,79 @@ export default function FeatureTree({ data, onDone, onBack }) {
         )}
       </div>
 
-      {selectedNodes.length > 0 && (
-        <>
-          <div className="mb-1 flex flex-wrap gap-2">
-            {selectedNodes.map((node, index) => (
-              <span
-                key={node.element_id_property || node.name}
-                className="rounded-xl bg-[#23274a] px-3 py-1 text-xs font-medium text-white"
-              >
-                {node.name}
-                {index !== selectedNodes.length - 1 && (
-                  <span className="mx-1 text-gray-400">➝</span>
-                )}
-              </span>
-            ))}
-          </div>
-
-          <div className="my-3 flex w-full flex-col gap-2">
-            {extractFinalSuggestions(currentNode).conclusions.length > 0 && (
-              <div>
-                <div className="mb-1 text-xs font-semibold text-pink-300">Wnioski</div>
-                <div className="flex flex-col gap-1">
-                  {extractFinalSuggestions(currentNode).conclusions.map(c => (
-                    <div
-                      key={c.id}
-                      className="flex items-center rounded bg-pink-900/50 px-3 py-1 text-xs font-medium text-pink-100"
-                    >
-                      <span>{c.name}</span>
-                      <span className="ml-2 text-pink-300 opacity-70">
-                        {c.weight && `(waga: ${c.weight})`}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {extractFinalSuggestions(currentNode).diagnoses.length > 0 && (
-              <div>
-                <div className="mb-1 text-xs font-semibold text-[#eeb980]">
-                  Rozpoznania różnicowe
-                </div>
-                <div className="flex flex-col gap-1">
-                  {extractFinalSuggestions(currentNode).diagnoses.map(d => (
-                    <div
-                      key={d.id}
-                      className="flex items-center rounded bg-[#653828]/80 px-3 py-1 text-xs font-medium text-[#eeb980]"
-                    >
-                      <span>{d.name}</span>
-                      <span className="ml-2 opacity-80">{d.weight && `(waga: ${d.weight})`}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </>
-      )}
-
-      {currentChildren.length > 0 && (
-        <>
-          <div className="mb-1 text-xs text-[#C9C9C9]">Cechy</div>
+      {currentLevel.map(({ parentNode, childNodes }) => (
+        <div
+          key={parentNode.element_id_property}
+          className="mb-4"
+        >
+          <div className="mb-1 text-xs text-[#C9C9C9]">Cechy pochodzące od: {parentNode.name}</div>
           <div className="flex flex-col gap-2">
-            {currentChildren.map((node: any) => (
-              <button
-                key={node.element_id_property}
-                className="rounded bg-[#23274a] px-3 py-2 text-sm font-semibold text-white hover:bg-[#2d314f]"
-                onClick={() => handleSelectFeature(node)}
+            {childNodes.map(child => {
+              const selected = selectedNodes.find(
+                n =>
+                  n.node.element_id_property === child.element_id_property &&
+                  n.parentName === parentNode.name
+              );
+              return (
+                <button
+                  key={child.element_id_property + parentNode.name}
+                  className={`rounded px-3 py-2 text-sm font-semibold ${selected ? 'bg-[#14d6f8] text-black' : 'bg-[#23274a] text-white'}`}
+                  onClick={() => toggleSelect(child, parentNode)}
+                >
+                  {child.name} (od: {parentNode.name})
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
+      {allConclusions.length > 0 && (
+        <div>
+          <div className="mb-1 text-xs font-semibold text-pink-300">Wnioski</div>
+          <div className="flex flex-col gap-1">
+            {allConclusions.map(c => (
+              <div
+                key={c.name}
+                className="flex items-center rounded bg-pink-900/50 px-3 py-1 text-xs font-medium text-pink-100"
               >
-                {node.name}
-              </button>
+                <span>{c.name}</span>
+                <span className="ml-2 text-pink-300 opacity-70">(waga: {c.weight})</span>
+              </div>
             ))}
           </div>
-        </>
+        </div>
       )}
 
-      {selectedNodes.length > 0 && (
+      {allDiagnoses.length > 0 && (
+        <div>
+          <div className="mb-1 text-xs font-semibold text-[#eeb980]">Rozpoznania różnicowe</div>
+          <div className="flex flex-col gap-1">
+            {allDiagnoses.map(d => (
+              <div
+                key={d.name}
+                className="flex items-center rounded bg-[#653828]/80 px-3 py-1 text-xs font-medium text-[#eeb980]"
+              >
+                <span>{d.name}</span>
+                <span className="ml-2 opacity-80">(waga: {d.weight})</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {selectedNodes.length > 0 && hasNextLevel && (
         <button
-          className="mt-4 w-full rounded bg-[#00BFD9] py-2 font-bold text-black hover:bg-[#14d6f8]"
+          className="mt-4 w-full rounded bg-[#348CFD] py-2 font-bold text-white hover:bg-[#225BA4]"
+          onClick={handleNextLevel}
+        >
+          Dalej
+        </button>
+      )}
+
+      {selectedNodes.length > 0 && !hasNextLevel && (
+        <button
+          className="mt-4 w-full rounded bg-green-700 py-2 text-white"
           onClick={handleFinish}
         >
           Zakończ wybór
