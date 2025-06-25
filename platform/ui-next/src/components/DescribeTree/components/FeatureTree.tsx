@@ -238,22 +238,24 @@ export default function FeatureTree({ data, onDone, onBack }) {
         </div>
       )}
 
-      {selectedNodes.length > 0 && hasNextLevel && (
-        <button
-          className="mt-4 w-full rounded bg-[#348CFD] py-2 font-bold text-white hover:bg-[#225BA4]"
-          onClick={handleNextLevel}
-        >
-          Dalej
-        </button>
-      )}
+      {selectedNodes.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {hasNextLevel && (
+            <button
+              className="mt-4 w-full rounded bg-[#348CFD] py-2 font-bold text-white hover:bg-[#225BA4]"
+              onClick={handleNextLevel}
+            >
+              Dalej
+            </button>
+          )}
 
-      {selectedNodes.length > 0 && !hasNextLevel && (
-        <button
-          className="mt-4 w-full rounded bg-green-700 py-2 text-white"
-          onClick={handleFinish}
-        >
-          Zakończ wybór
-        </button>
+          <button
+            className="mt-2 w-full rounded bg-green-700 py-2 text-white"
+            onClick={handleFinish}
+          >
+            Zakończ wybór
+          </button>
+        </div>
       )}
 
       <button

@@ -1,14 +1,6 @@
 import React, { useState } from 'react';
 
-export default function LocationTree({
-  data,
-  onDone,
-  onBack,
-}: {
-  data: any[];
-  onDone: (selected: any) => void;
-  onBack: () => void;
-}) {
+export default function LocationTree({ data, onDone, onBack, onFinish }) {
   const [pathStack, setPathStack] = useState<any[]>([]);
   const [currentLevel, setCurrentLevel] = useState([
     { parentNode: data[0], childNodes: data[0].children_lokalizacja || [] },
@@ -68,7 +60,7 @@ export default function LocationTree({
     const allSelected = pathStack
       .flatMap(step => step.selected.map(s => s.node))
       .concat(selectedNodes.map(s => s.node));
-    onDone(allSelected);
+    onFinish(allSelected);
   }
 
   const hasNextLevel = selectedNodes.some(
@@ -107,7 +99,9 @@ export default function LocationTree({
               return (
                 <button
                   key={child.element_id_property + parentNode.name}
-                  className={`rounded px-3 py-2 text-sm font-semibold ${selected ? 'bg-[#14d6f8] text-black' : 'bg-[#23274a] text-white'}`}
+                  className={`rounded px-3 py-2 text-sm font-semibold ${
+                    selected ? 'bg-[#14d6f8] text-black' : 'bg-[#23274a] text-white'
+                  }`}
                   onClick={() => toggleSelect(child, parentNode)}
                 >
                   {child.name} (od: {parentNode.name})
@@ -118,22 +112,23 @@ export default function LocationTree({
         </div>
       ))}
 
-      {selectedNodes.length > 0 && hasNextLevel && (
-        <button
-          className="mt-4 w-full rounded bg-[#348CFD] py-2 font-bold text-white hover:bg-[#225BA4]"
-          onClick={handleNextLevel}
-        >
-          Dalej
-        </button>
-      )}
-
-      {selectedNodes.length > 0 && !hasNextLevel && (
-        <button
-          className="mt-4 w-full rounded bg-green-700 py-2 text-white"
-          onClick={handleFinish}
-        >
-          Zakończ wybór
-        </button>
+      {selectedNodes.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {hasNextLevel && (
+            <button
+              className="mt-4 w-full rounded bg-[#348CFD] py-2 font-bold text-white hover:bg-[#225BA4]"
+              onClick={handleNextLevel}
+            >
+              Dalej
+            </button>
+          )}
+          <button
+            className="mt-2 w-full rounded bg-green-700 py-2 text-white"
+            onClick={handleFinish}
+          >
+            Zakończ wybór
+          </button>
+        </div>
       )}
 
       <button

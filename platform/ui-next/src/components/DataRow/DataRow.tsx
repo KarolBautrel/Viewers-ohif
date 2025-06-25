@@ -21,7 +21,6 @@ interface DataRowProps {
   onToggleVisibility: () => void;
   isLocked: boolean;
   onToggleLocked: () => void;
-  title: string;
   onRename: () => void;
   onDelete: () => void;
   colorHex?: string;
@@ -107,7 +106,6 @@ const DataRow: React.FC<DataRowProps> = ({
   const renderDetails = (details: string[]) => {
     const visibleLines = details.slice(0, 4);
     const hiddenLines = details.slice(4);
-
     return (
       <Tooltip>
         <TooltipTrigger asChild>
@@ -146,22 +144,16 @@ const DataRow: React.FC<DataRowProps> = ({
       className={`flex flex-col ${isVisible ? '' : 'opacity-60'}`}
     >
       <div
-        className={`flex items-center ${
-          isSelected ? 'bg-popover' : 'bg-muted'
-        } group relative cursor-pointer`}
+        className={`flex items-center ${isSelected ? 'bg-popover' : 'bg-muted'} group relative cursor-pointer`}
         onClick={onSelect}
         data-cy="data-row"
       >
         <div className="bg-primary/20 pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100"></div>
-
         <div
-          className={`flex h-7 max-h-7 w-7 flex-shrink-0 items-center justify-center rounded-l border-r border-black text-base ${
-            isSelected ? 'bg-highlight text-black' : 'bg-muted text-muted-foreground'
-          } overflow-hidden`}
+          className={`flex h-7 max-h-7 w-7 flex-shrink-0 items-center justify-center rounded-l border-r border-black text-base ${isSelected ? 'bg-highlight text-black' : 'bg-muted text-muted-foreground'} overflow-hidden`}
         >
           {number}
         </div>
-
         {colorHex && (
           <div className="flex h-7 w-5 items-center justify-center">
             <span
@@ -170,15 +162,12 @@ const DataRow: React.FC<DataRowProps> = ({
             ></span>
           </div>
         )}
-
         <div className="ml-2 flex-1 overflow-hidden">
           {isTitleLong ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <span
-                  className={`cursor-default text-base ${
-                    isSelected ? 'text-highlight' : 'text-muted-foreground'
-                  } [overflow:hidden] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]`}
+                  className={`cursor-default text-base ${isSelected ? 'text-highlight' : 'text-muted-foreground'} [overflow:hidden] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]`}
                 >
                   {title}
                 </span>
@@ -192,22 +181,17 @@ const DataRow: React.FC<DataRowProps> = ({
             </Tooltip>
           ) : (
             <span
-              className={`text-base ${
-                isSelected ? 'text-highlight' : 'text-muted-foreground'
-              } [overflow:hidden] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]`}
+              className={`text-base ${isSelected ? 'text-highlight' : 'text-muted-foreground'} [overflow:hidden] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]`}
             >
               {title}
             </span>
           )}
         </div>
-
         <div className="relative ml-2 flex items-center space-x-1">
           <Button
             size="icon"
             variant="ghost"
-            className={`h-6 w-6 transition-opacity ${
-              isSelected || !isVisible ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-            }`}
+            className={`h-6 w-6 transition-opacity ${isSelected || !isVisible ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
             aria-label={isVisible ? 'Hide' : 'Show'}
             onClick={e => {
               e.stopPropagation();
@@ -216,9 +200,7 @@ const DataRow: React.FC<DataRowProps> = ({
           >
             {isVisible ? <Icons.Hide className="h-6 w-6" /> : <Icons.Show className="h-6 w-6" />}
           </Button>
-
           {isLocked && !disableEditing && <Icons.Lock className="text-muted-foreground h-6 w-6" />}
-
           {disableEditing && <div className="h-6 w-6"></div>}
           {!disableEditing && (
             <DropdownMenu onOpenChange={open => setIsDropdownOpen(open)}>
@@ -226,11 +208,7 @@ const DataRow: React.FC<DataRowProps> = ({
                 <Button
                   size="icon"
                   variant="ghost"
-                  className={`h-6 w-6 transition-opacity ${
-                    isSelected || isDropdownOpen
-                      ? 'opacity-100'
-                      : 'opacity-0 group-hover:opacity-100'
-                  }`}
+                  className={`h-6 w-6 transition-opacity ${isSelected || isDropdownOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
                   aria-label="Actions"
                   onClick={e => e.stopPropagation()}
                 >
@@ -283,51 +261,45 @@ const DataRow: React.FC<DataRowProps> = ({
       )}
 
       <div className="ml-7 px-2 py-1">
-        {measurementDescription?.description &&
-        Array.isArray(measurementDescription.description.features) &&
-        measurementDescription.description.features.length > 0 ? (
+        {measurementDescription?.description?.features?.length > 0 ? (
           <div>
             <div className="mb-2 flex flex-wrap items-center gap-2">
               <span className="text-secondary-foreground font-semibold">Cechy:</span>
-              {measurementDescription.description.features.map((feature, idx, arr) => (
-                <React.Fragment key={feature.uuid || feature.name + idx}>
-                  <span className="rounded-2xl bg-[#23274a] px-3 py-1 text-sm font-medium text-white">
-                    {feature.name}
-                  </span>
-                  {idx !== arr.length - 1}
-                </React.Fragment>
+              {measurementDescription.description.features.map((feature, idx) => (
+                <span
+                  key={feature.uuid || feature.name + idx}
+                  className="rounded-2xl bg-[#23274a] px-3 py-1 text-sm font-medium text-white"
+                >
+                  {feature.name}
+                </span>
               ))}
             </div>
-
-            {Array.isArray(measurementDescription.description.conclusions) &&
-              measurementDescription.description.conclusions.length > 0 && (
-                <div className="mb-2 flex flex-wrap items-center gap-2">
-                  <span className="font-semibold text-pink-300">Wnioski:</span>
-                  {measurementDescription.description.conclusions.map((conclusion, idx) => (
-                    <span
-                      key={conclusion.uuid || conclusion.name + idx}
-                      className="rounded-2xl bg-pink-900 px-3 py-1 text-sm font-medium text-pink-200"
-                    >
-                      {conclusion.name}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-            {Array.isArray(measurementDescription.description.diagnoses) &&
-              measurementDescription.description.diagnoses.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-semibold text-[#ffdcb0]">Rozpoznania:</span>
-                  {measurementDescription.description.diagnoses.map((diagnosis, idx) => (
-                    <span
-                      key={diagnosis.uuid || diagnosis.name + idx}
-                      className="rounded-2xl bg-[#653828] px-3 py-1 text-sm font-medium text-[#ffdcb0]"
-                    >
-                      {diagnosis.name}
-                    </span>
-                  ))}
-                </div>
-              )}
+            {measurementDescription.description.conclusions?.length > 0 && (
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <span className="font-semibold text-pink-300">Wnioski:</span>
+                {measurementDescription.description.conclusions.map((c, idx) => (
+                  <span
+                    key={c.uuid || c.name + idx}
+                    className="rounded-2xl bg-pink-900 px-3 py-1 text-sm font-medium text-pink-200"
+                  >
+                    {c.name}
+                  </span>
+                ))}
+              </div>
+            )}
+            {measurementDescription.description.diagnoses?.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold text-[#ffdcb0]">Rozpoznania:</span>
+                {measurementDescription.description.diagnoses.map((d, idx) => (
+                  <span
+                    key={d.uuid || d.name + idx}
+                    className="rounded-2xl bg-[#653828] px-3 py-1 text-sm font-medium text-[#ffdcb0]"
+                  >
+                    {d.name}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-secondary-foreground text-base">
@@ -341,14 +313,26 @@ const DataRow: React.FC<DataRowProps> = ({
         measurementDescription.localization.length > 0 ? (
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <span className="text-secondary-foreground font-semibold">Lokalizacja:</span>
-            {measurementDescription.localization.map((loc, idx) => (
-              <span
-                key={loc.uuid || loc.name + idx}
-                className="rounded-2xl bg-[#225BA4] px-3 py-1 text-sm font-medium text-white"
-              >
-                {loc.name}
-              </span>
-            ))}
+            {measurementDescription.localization
+              .filter(l => l.ROI === false)
+              .map((loc, idx) => (
+                <span
+                  key={loc.uuid || loc.name + idx}
+                  className="rounded-2xl bg-[#62768b] px-3 py-1 text-sm font-medium text-white"
+                >
+                  {loc.name} (wirtualna)
+                </span>
+              ))}
+            {measurementDescription.localization
+              .filter(l => l.ROI !== false)
+              .map((loc, idx) => (
+                <span
+                  key={loc.uuid || loc.name + idx}
+                  className="rounded-2xl bg-[#225BA4] px-3 py-1 text-sm font-medium text-white"
+                >
+                  {loc.name}
+                </span>
+              ))}
           </div>
         ) : (
           <div className="text-secondary-foreground text-base">

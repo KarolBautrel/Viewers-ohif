@@ -10,13 +10,13 @@ export const OBJAW_RADIOLOGICZNY = [
   'mnogie guzki płuca',
   // 'częściowo lity guzek miąższu płuca',
 ];
-
 export default function DescribeTree({
   onSelect,
   onCancel,
   measurements,
   uid,
   referralData,
+  circumstancecData,
 }: {
   onSelect: (desc: Record<string, any>) => void;
   onCancel: () => void;
@@ -25,16 +25,14 @@ export default function DescribeTree({
   referralData: string[];
   circumstancecData: string[];
 }) {
-  const [step, setStep] = useState<'circumstances' | 'form' | 'features' | 'locations'>('form');
+  const [step, setStep] = useState<
+    'selectMode' | 'locations' | 'form' | 'features' | 'virtualLocation'
+  >('form');
   const [featureData, setFeatureData] = useState<CechaNode[] | null>(null);
   const [locData, setLocData] = useState<any[] | null>(null);
-  const [describeResult, setDescribeResult] = useState<{
-    circumstances: any[] | null;
-    localization: Record<any, any> | null;
-    description: Record<any, any> | null;
-  }>({
-    circumstances: null,
-    localization: null,
+  const [describeResult, setDescribeResult] = useState({
+    circumstances: circumstancecData || null,
+    localization: [],
     description: null,
   });
 
@@ -44,52 +42,49 @@ export default function DescribeTree({
   const [error, setError] = useState<string | null>(null);
 
   const currentMeasurement = measurements?.find(m => m.uid === uid);
+  const hasLocalization = currentMeasurement?.description?.localization?.length > 0;
+
+  useEffect(() => {
+    if (hasLocalization) {
+      setDescribeResult(r => ({
+        ...r,
+        localization: currentMeasurement.description.localization,
+        description: currentMeasurement.description.description,
+      }));
+      setStep('selectMode');
+    } else {
+      fetchLocations();
+    }
+  }, []);
 
   let displayValue = '';
   let displayUnit = '';
   if (currentMeasurement) {
     if (currentMeasurement.toolName === 'Length') {
-      const dataKey = Object.keys(currentMeasurement.data || {})[0];
-      const d = dataKey && currentMeasurement.data[dataKey];
-      if (d && typeof d.length === 'number') {
+      const d = currentMeasurement.data?.[Object.keys(currentMeasurement.data)[0]];
+      if (d?.length) {
         displayValue = d.length.toFixed(1);
         displayUnit = 'mm';
       }
-    } else if (
-      currentMeasurement.toolName === 'CircleROI' ||
-      currentMeasurement.toolName === 'PlanarFreehandROI'
-    ) {
-      const dataKey = Object.keys(currentMeasurement.data || {})[0];
-      const d = dataKey && currentMeasurement.data[dataKey];
-      if (d && typeof d.area === 'number') {
+    } else if (['CircleROI', 'PlanarFreehandROI'].includes(currentMeasurement.toolName)) {
+      const d = currentMeasurement.data?.[Object.keys(currentMeasurement.data)[0]];
+      if (d?.area) {
         displayValue = d.area.toFixed(1);
         displayUnit = 'mm²';
       }
     }
   }
 
-  function handleCircumstancesDone(selectedCircumstances: any[]) {
-    setDescribeResult(r => ({ ...r, circumstances: selectedCircumstances }));
-    setStep('form');
-  }
-
-  ///TODO: Zrobic serwis odpowiedzialny za api calle i tam przeniesc logike
-  /// Na surowo jest tutaj na potrzeby POC, w nastepnym releasie juz przeniose
   async function fetchFeatures() {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({
-        finding_name: findingName,
-        size: displayValue || size,
-      }).toString();
-
+      const params = new URLSearchParams({ finding_name: findingName, size: displayValue || size });
       const res = await fetch(`${API_URL}/api/neo/objawy/by-name/cechy/?${params}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ referral_data: referralData }),
       });
-
       if (!res.ok) throw new Error('Błąd pobierania cech');
       const data = await res.json();
       setFeatureData(data);
@@ -101,83 +96,139 @@ export default function DescribeTree({
     }
   }
 
-  async function fetchLocations() {
+  async function fetchLocations(isVirtual = false) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/api/neo/objawy/by-name/lokalizacja/`, { method: 'GET' });
+      const res = await fetch(`${API_URL}/api/neo/objawy/by-name/lokalizacja/`);
       if (!res.ok) throw new Error('Błąd pobierania lokalizacji');
       const data = await res.json();
       setLocData(data);
-      setStep('locations');
+      setStep(isVirtual ? 'virtualLocation' : 'locations');
     } catch (e) {
-      setError('Nie udało się pobrać drzewa lokalizacji.');
+      setError('Nie udało się pobrać lokalizacji.');
     } finally {
       setLoading(false);
     }
   }
 
-  function resetAll() {
-    setStep('form');
-    setFeatureData(null);
-    setLocData(null);
-    setFindingName('');
-    setSize('');
-    setDescribeResult({ circumstances: null, localization: null, description: null });
-    setError(null);
+  function applyROIFalseRecursive(node) {
+    return {
+      ...node,
+      ROI: false,
+      children_lokalizacja: (node.children_lokalizacja || []).map(applyROIFalseRecursive),
+    };
   }
 
-  function handleFeatureDone(descriptionList: Record<any, any>) {
-    setDescribeResult(r => {
-      const full = { ...r, description: descriptionList };
-      return full;
-    });
-    fetchLocations();
-  }
-
-  function handleLocalizationDone(selectedPath: Record<any, any>) {
+  function handleLocalizationDone(selectedPath: any) {
     setDescribeResult(r => ({ ...r, localization: selectedPath }));
-    const finalDes = { ...describeResult, localization: selectedPath };
-    onSelect(finalDes);
+    setStep('form');
+  }
+
+  function handleVirtualLocalizationDone(selectedPath: any) {
+    const flaggedLocations = selectedPath.map(applyROIFalseRecursive);
+    const updatedLocalization = [...describeResult.localization, ...flaggedLocations];
+
+    const updatedResult = {
+      ...describeResult,
+      localization: updatedLocalization,
+    };
+
+    setDescribeResult(updatedResult);
+
+    onSelect({
+      localization: updatedLocalization,
+      description: updatedResult.description,
+      circumstances: updatedResult.circumstances,
+      referral: referralData,
+    });
+  }
+
+  function handleFeatureDone(descriptionList: any) {
+    onSelect({
+      localization: describeResult.localization,
+      description: descriptionList,
+      circumstances: describeResult.circumstances,
+      referral: referralData,
+    });
   }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-start bg-[#090C2A] py-6">
-      <div className="relative flex max-h-screen w-[342px] flex-col items-start gap-2 overflow-y-auto rounded-lg bg-[#090C2A] px-4 pt-4 pb-6 shadow-[0px_1px_2px_rgba(0,0,0,0.10),0px_1px_3px_rgba(0,0,0,0.05)]">
-        <div className="mb-6 flex w-[310px] flex-row items-center justify-between">
-          <span className="font-roboto text-[20px] font-semibold text-[#C9C9C9]">Opisz pomiar</span>
+      <div className="relative flex max-h-screen w-[342px] flex-col gap-4 rounded-lg bg-[#090C2A] p-4 shadow">
+        <div className="flex items-center justify-between">
+          <span className="text-xl font-semibold text-[#C9C9C9]">Opisz pomiar</span>
           <button
             onClick={onCancel}
-            className="flex h-8 w-8 items-center justify-center rounded text-[#C9C9C9] hover:bg-[#23274a]"
-            aria-label="Zamknij"
+            className="h-8 w-8 rounded text-white hover:bg-[#23274a]"
           >
             ✕
           </button>
         </div>
 
-        <div className="mb-2 flex w-[310px] justify-center">
-          <span className="font-roboto rounded-2xl bg-[rgba(134,142,150,0.15)] px-3 py-1 text-[16px] text-white">
-            {displayValue ? `${displayValue} ${displayUnit}` : '—'}
-          </span>
-        </div>
+        {step === 'selectMode' && (
+          <div className="flex flex-col gap-3">
+            <span className="text-sm text-white">Co chcesz zrobić?</span>
+            <button
+              className="rounded bg-[#348CFD] py-2 text-white"
+              onClick={() => fetchLocations()}
+            >
+              Edytuj lokalizację
+            </button>
+            <button
+              className="rounded bg-[#348CFD] py-2 text-white"
+              onClick={() => setStep('form')}
+            >
+              Edytuj opis (cechy)
+            </button>
+            <button
+              className="rounded bg-[#225BA4] py-2 text-white"
+              onClick={() => fetchLocations(true)}
+            >
+              Dodaj kolejne lokalizacje (wirtualne)
+            </button>
 
-        {step === 'circumstances' && (
-          <CircumstancesTree
-            onDone={handleCircumstancesDone}
-            onBack={onCancel}
+            {describeResult.localization?.length > 0 && (
+              <div className="mt-4">
+                <span className="text-sm font-semibold text-white">Aktualne lokalizacje:</span>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {describeResult.localization.map((loc, idx) => (
+                    <span
+                      key={idx}
+                      className={`rounded-2xl px-3 py-1 text-sm font-medium ${loc.ROI === false ? 'bg-[#62768b] text-white' : 'bg-[#225BA4] text-white'}`}
+                    >
+                      {loc.name} {loc.ROI === false ? '(wirtualna)' : ''}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {step === 'locations' && locData && (
+          <LocationTree
+            data={locData}
+            onDone={selected => handleLocalizationDone(selected)}
+            onBack={() => setStep('selectMode')}
+            onFinish={selected => handleLocalizationDone(selected)}
+          />
+        )}
+
+        {step === 'virtualLocation' && locData && (
+          <LocationTree
+            data={locData}
+            onDone={selected => handleVirtualLocalizationDone(selected)}
+            onBack={() => setStep('selectMode')}
+            onFinish={selected => handleVirtualLocalizationDone(selected)}
           />
         )}
 
         {step === 'form' && (
           <form
-            className="flex w-[310px] flex-col gap-4"
             onSubmit={e => e.preventDefault()}
+            className="flex flex-col gap-4"
           >
-            <div className="flex w-full flex-row items-center gap-2">
-              <span className="font-roboto text-[14px] font-semibold text-[#C9C9C9]">
-                Objaw radiologiczny
-              </span>
-            </div>
             <label className="flex w-full flex-col gap-1">
               <span className="font-roboto mb-0.5 flex flex-row items-center text-[14px] font-semibold text-[#C9C9C9]">
                 Wybierz objaw
@@ -202,13 +253,13 @@ export default function DescribeTree({
             </label>
             <button
               type="button"
-              className="mt-2 h-10 w-full rounded bg-[#348CFD] px-4 py-2 font-semibold text-white transition hover:bg-[#225BA4]"
               onClick={fetchFeatures}
               disabled={!findingName || loading}
+              className="rounded bg-[#348CFD] py-2 text-white"
             >
-              {loading ? '...' : 'Pobierz cechy'}
+              {loading ? 'Ładowanie...' : 'Pobierz cechy'}
             </button>
-            {error && <span className="text-sm text-red-400">{error}</span>}
+            {error && <div className="text-red-400">{error}</div>}
           </form>
         )}
 
@@ -217,14 +268,6 @@ export default function DescribeTree({
             data={featureData}
             onDone={handleFeatureDone}
             onBack={() => setStep('form')}
-          />
-        )}
-
-        {step === 'locations' && locData && (
-          <LocationTree
-            data={locData}
-            onDone={handleLocalizationDone}
-            onBack={() => setStep('features')}
           />
         )}
       </div>
