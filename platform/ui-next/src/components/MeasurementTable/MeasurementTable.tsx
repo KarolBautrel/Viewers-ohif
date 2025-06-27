@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DataRow, PanelSection } from '../../index';
 import { createContext } from '../../lib/createContext';
+import { Button } from '@ohif/ui-next';
 
 interface MeasurementTableContext {
   data?: any[];
@@ -11,8 +12,9 @@ interface MeasurementTableContext {
   onToggleLocked?: (uid: string) => void;
   onRename?: (uid: string) => void;
   onColor?: (uid: string) => void;
-  /// HERE
-  onDescribe?: (uid: string, description: string) => void; 
+  expandAll?: boolean;
+  setExpandAll?: (value: boolean) => void;
+  onDescribe?: (uid: string, description: string) => void;
   disableEditing?: boolean;
 }
 
@@ -40,10 +42,10 @@ const MeasurementTable = ({
   const { t } = useTranslation('MeasurementTable');
   const amount = data.length;
 
-  useEffect(()=>{
-    data
-  })
-
+  useEffect(() => {
+    data;
+  });
+  const [expandAll, setExpandAll] = useState<boolean | undefined>(undefined);
 
   return (
     <MeasurementTableProvider
@@ -55,11 +57,20 @@ const MeasurementTable = ({
       onRename={onRename}
       onColor={onColor}
       disableEditing={disableEditing}
-      onDescribe = {onDescribe}
+      onDescribe={onDescribe}
+      expandAll={expandAll}
+      setExpandAll={setExpandAll}
     >
       <PanelSection defaultOpen={true}>
-        <PanelSection.Header className="bg-secondary-dark">
+        <PanelSection.Header className="bg-secondary-dark flex items-center justify-between">
           <span>{`${t(title)} (${amount})`}</span>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setExpandAll(!expandAll)}
+            ></Button>
+          </div>
         </PanelSection.Header>
         <PanelSection.Content>{children}</PanelSection.Content>
       </PanelSection>
@@ -109,7 +120,7 @@ interface MeasurementItem {
   isVisible: boolean;
   isLocked: boolean;
   toolName: string;
-  description: string
+  description: string;
 }
 
 interface RowProps {
@@ -149,7 +160,7 @@ const Row = ({ item, index }: RowProps) => {
       onToggleLocked={() => onToggleLocked(item.uid)}
       onRename={() => onRename(item.uid)}
       onDescribe={(uid, description) => onDescribe?.(uid, description)}
-      measurementDescription = {item?.description}
+      measurementDescription={item?.description}
       // onColor={() => onColor(item.uid)}
     />
   );

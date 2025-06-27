@@ -5,6 +5,7 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
   const [currentLevel, setCurrentLevel] = useState([
     { parentNode: data[0], childNodes: data[0].children_lokalizacja || [] },
   ]);
+  const [tree, setTree] = useState<any[]>([]);
   const [selectedNodes, setSelectedNodes] = useState<any[]>([]);
 
   function toggleSelect(node: any, parent: any) {
@@ -26,7 +27,50 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
     }
   }
 
+  function mergeChildIntoTree(baseTree, parentName, childNode) {
+    return baseTree.map(node => {
+      if (node.name === parentName) {
+        const existingChild = (node.children_lokalizacja || []).find(
+          c => c.element_id_property === childNode.element_id_property
+        );
+        if (existingChild) return node;
+
+        return {
+          ...node,
+          children_lokalizacja: [
+            ...(node.children_lokalizacja || []),
+            { ...childNode, children_lokalizacja: [] },
+          ],
+        };
+      }
+      if (node.children_lokalizacja?.length > 0) {
+        return {
+          ...node,
+          children_lokalizacja: mergeChildIntoTree(
+            node.children_lokalizacja,
+            parentName,
+            childNode
+          ),
+        };
+      }
+      return node;
+    });
+  }
+
   function handleNextLevel() {
+    let updatedTree = [...tree];
+
+    selectedNodes.forEach(({ node, parentName }) => {
+      if (tree.find(t => t.name === node.name)) return;
+
+      const existsInTree = tree.find(t => t.name === parentName);
+      if (existsInTree) {
+        updatedTree = mergeChildIntoTree(updatedTree, parentName, node);
+      } else {
+        updatedTree.push({ ...node, children_lokalizacja: [] });
+      }
+    });
+
     const nextLevel = selectedNodes
       .flatMap(entry => ({
         parentNode: entry.node,
@@ -34,6 +78,7 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
       }))
       .filter(entry => entry.childNodes.length > 0);
 
+    setTree(updatedTree);
     setPathStack(prev => [...prev, { level: currentLevel, selected: selectedNodes }]);
     setCurrentLevel(nextLevel);
     setSelectedNodes([]);
@@ -53,14 +98,24 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
   function handleReset() {
     setPathStack([]);
     setSelectedNodes([]);
+    setTree([]);
     setCurrentLevel([{ parentNode: data[0], childNodes: data[0].children_lokalizacja || [] }]);
   }
 
   function handleFinish() {
-    const allSelected = pathStack
-      .flatMap(step => step.selected.map(s => s.node))
-      .concat(selectedNodes.map(s => s.node));
-    onFinish(allSelected);
+    let updatedTree = [...tree];
+    selectedNodes.forEach(({ node, parentName }) => {
+      if (tree.find(t => t.name === node.name)) return;
+
+      const existsInTree = tree.find(t => t.name === parentName);
+      if (existsInTree) {
+        updatedTree = mergeChildIntoTree(updatedTree, parentName, node);
+      } else {
+        updatedTree.push({ ...node, children_lokalizacja: [] });
+      }
+    });
+
+    onFinish(updatedTree);
   }
 
   const hasNextLevel = selectedNodes.some(
@@ -99,9 +154,7 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
               return (
                 <button
                   key={child.element_id_property + parentNode.name}
-                  className={`rounded px-3 py-2 text-sm font-semibold ${
-                    selected ? 'bg-[#14d6f8] text-black' : 'bg-[#23274a] text-white'
-                  }`}
+                  className={`rounded px-3 py-2 text-sm font-semibold ${selected ? 'bg-[#14d6f8] text-black' : 'bg-[#23274a] text-white'}`}
                   onClick={() => toggleSelect(child, parentNode)}
                 >
                   {child.name} (od: {parentNode.name})

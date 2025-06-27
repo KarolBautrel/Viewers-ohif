@@ -4,12 +4,9 @@ import FeatureTree from './components/FeatureTree';
 import LocationTree from './components/LocationTree';
 import type { CechaNode } from './types';
 import { API_URL } from './consts';
-export const OBJAW_RADIOLOGICZNY = [
-  // 'część lita częściowo litego guzka miąższu płuca',
-  'guzek miąższu płuca',
-  'mnogie guzki płuca',
-  // 'częściowo lity guzek miąższu płuca',
-];
+
+export const OBJAW_RADIOLOGICZNY = ['guzek miąższu płuca', 'mnogie guzki płuca'];
+
 export default function DescribeTree({
   onSelect,
   onCancel,
@@ -27,7 +24,7 @@ export default function DescribeTree({
 }) {
   const [step, setStep] = useState<
     'selectMode' | 'locations' | 'form' | 'features' | 'virtualLocation'
-  >('form');
+  >('locations');
   const [featureData, setFeatureData] = useState<CechaNode[] | null>(null);
   const [locData, setLocData] = useState<any[] | null>(null);
   const [describeResult, setDescribeResult] = useState({
@@ -99,6 +96,12 @@ export default function DescribeTree({
   async function fetchLocations(isVirtual = false) {
     setLoading(true);
     setError(null);
+    /// Za kazdym razem, gdy zmieniamy lokalizacje, opis
+    // musi sie zrestartowac, dlatego daje desc na null
+    setDescribeResult(r => ({
+      ...r,
+      description: null,
+    }));
     try {
       const res = await fetch(`${API_URL}/api/neo/objawy/by-name/lokalizacja/`);
       if (!res.ok) throw new Error('Błąd pobierania lokalizacji');
@@ -122,35 +125,24 @@ export default function DescribeTree({
 
   function handleLocalizationDone(selectedPath: any) {
     setDescribeResult(r => ({ ...r, localization: selectedPath }));
-    setStep('form');
+    setStep('selectMode');
   }
 
   function handleVirtualLocalizationDone(selectedPath: any) {
     const flaggedLocations = selectedPath.map(applyROIFalseRecursive);
-    const updatedLocalization = [...describeResult.localization, ...flaggedLocations];
-
-    const updatedResult = {
-      ...describeResult,
-      localization: updatedLocalization,
-    };
-
-    setDescribeResult(updatedResult);
-
-    onSelect({
-      localization: updatedLocalization,
-      description: updatedResult.description,
-      circumstances: updatedResult.circumstances,
-      referral: referralData,
-    });
+    setDescribeResult(r => ({
+      ...r,
+      localization: [...r.localization, ...flaggedLocations],
+    }));
+    setStep('selectMode');
   }
 
   function handleFeatureDone(descriptionList: any) {
-    onSelect({
-      localization: describeResult.localization,
+    setDescribeResult(r => ({
+      ...r,
       description: descriptionList,
-      circumstances: describeResult.circumstances,
-      referral: referralData,
-    });
+    }));
+    setStep('selectMode');
   }
 
   return (
@@ -187,7 +179,6 @@ export default function DescribeTree({
             >
               Dodaj kolejne lokalizacje (wirtualne)
             </button>
-
             {describeResult.localization?.length > 0 && (
               <div className="mt-4">
                 <span className="text-sm font-semibold text-white">Aktualne lokalizacje:</span>
@@ -203,24 +194,37 @@ export default function DescribeTree({
                 </div>
               </div>
             )}
+            <button
+              className="mt-4 rounded bg-green-600 py-2 text-white"
+              onClick={() =>
+                onSelect({
+                  localization: describeResult.localization,
+                  description: describeResult.description,
+                  circumstances: describeResult.circumstances,
+                  referral: referralData,
+                })
+              }
+            >
+              Zatwierdź i zakończ
+            </button>
           </div>
         )}
 
         {step === 'locations' && locData && (
           <LocationTree
             data={locData}
-            onDone={selected => handleLocalizationDone(selected)}
+            onDone={handleLocalizationDone}
             onBack={() => setStep('selectMode')}
-            onFinish={selected => handleLocalizationDone(selected)}
+            onFinish={handleLocalizationDone}
           />
         )}
 
         {step === 'virtualLocation' && locData && (
           <LocationTree
             data={locData}
-            onDone={selected => handleVirtualLocalizationDone(selected)}
+            onDone={handleVirtualLocalizationDone}
             onBack={() => setStep('selectMode')}
-            onFinish={selected => handleVirtualLocalizationDone(selected)}
+            onFinish={handleVirtualLocalizationDone}
           />
         )}
 
@@ -230,12 +234,11 @@ export default function DescribeTree({
             className="flex flex-col gap-4"
           >
             <label className="flex w-full flex-col gap-1">
-              <span className="font-roboto mb-0.5 flex flex-row items-center text-[14px] font-semibold text-[#C9C9C9]">
-                Wybierz objaw
-                <span className="ml-1 text-[#F03E3E]">*</span>
+              <span className="mb-0.5 flex flex-row items-center text-[14px] font-semibold text-[#C9C9C9]">
+                Wybierz objaw<span className="ml-1 text-[#F03E3E]">*</span>
               </span>
               <select
-                className="font-roboto h-10 w-full rounded border border-[#225BA4] bg-[#0B0F2B] px-3 text-[16px] text-white outline-none"
+                className="h-10 w-full rounded border border-[#225BA4] bg-[#0B0F2B] px-3 text-[16px] text-white outline-none"
                 value={findingName}
                 onChange={e => setFindingName(e.target.value)}
                 required

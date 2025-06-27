@@ -51,8 +51,16 @@ const DataRow: React.FC<DataRowProps> = ({
   measurementDescription,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const isTitleLong = title?.length > 25;
   const rowRef = useRef<HTMLDivElement>(null);
+
+  const getDeepestName = node => {
+    if (node?.children_lokalizacja?.length > 0) {
+      return getDeepestName(node.children_lokalizacja[node.children_lokalizacja.length - 1]);
+    }
+    return node?.name || '';
+  };
 
   const handleAction = (action: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -80,7 +88,9 @@ const DataRow: React.FC<DataRowProps> = ({
     txt.innerHTML = html;
     return txt.value;
   };
-
+  useEffect(() => {
+    console.log('!!!!', measurementDescription);
+  });
   const renderDetailText = (text: string, indent: number = 0) => {
     const indentation = '  '.repeat(indent);
     if (text === '') {
@@ -191,6 +201,22 @@ const DataRow: React.FC<DataRowProps> = ({
           <Button
             size="icon"
             variant="ghost"
+            className="h-6 w-6"
+            aria-label="Toggle Details"
+            onClick={e => {
+              e.stopPropagation();
+              setCollapsed(!collapsed);
+            }}
+          >
+            {collapsed ? (
+              <Icons.ChevronClosed className="h-5 w-5" />
+            ) : (
+              <Icons.ChevronOpen className="h-5 w-5" />
+            )}
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
             className={`h-6 w-6 transition-opacity ${isSelected || !isVisible ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
             aria-label={isVisible ? 'Hide' : 'Show'}
             onClick={e => {
@@ -247,99 +273,103 @@ const DataRow: React.FC<DataRowProps> = ({
         </div>
       </div>
 
-      {details && (details.primary?.length > 0 || details.secondary?.length > 0) && (
-        <div className="ml-7 px-2 py-2">
-          <div className="text-secondary-foreground flex items-center gap-1 text-base leading-normal">
-            {details.primary?.length > 0 && renderDetails(details.primary)}
-            {details.secondary?.length > 0 && (
-              <div className="text-muted-foreground ml-auto text-sm">
-                {renderDetails(details.secondary)}
+      {!collapsed && (
+        <>
+          {details && (details.primary?.length > 0 || details.secondary?.length > 0) && (
+            <div className="ml-7 px-2 py-2">
+              <div className="text-secondary-foreground flex items-center gap-1 text-base leading-normal">
+                {details.primary?.length > 0 && renderDetails(details.primary)}
+                {details.secondary?.length > 0 && (
+                  <div className="text-muted-foreground ml-auto text-sm">
+                    {renderDetails(details.secondary)}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      <div className="ml-7 px-2 py-1">
-        {measurementDescription?.description?.features?.length > 0 ? (
-          <div>
-            <div className="mb-2 flex flex-wrap items-center gap-2">
-              <span className="text-secondary-foreground font-semibold">Cechy:</span>
-              {measurementDescription.description.features.map((feature, idx) => (
-                <span
-                  key={feature.uuid || feature.name + idx}
-                  className="rounded-2xl bg-[#23274a] px-3 py-1 text-sm font-medium text-white"
-                >
-                  {feature.name}
-                </span>
-              ))}
             </div>
-            {measurementDescription.description.conclusions?.length > 0 && (
-              <div className="mb-2 flex flex-wrap items-center gap-2">
-                <span className="font-semibold text-pink-300">Wnioski:</span>
-                {measurementDescription.description.conclusions.map((c, idx) => (
-                  <span
-                    key={c.uuid || c.name + idx}
-                    className="rounded-2xl bg-pink-900 px-3 py-1 text-sm font-medium text-pink-200"
-                  >
-                    {c.name}
-                  </span>
-                ))}
-              </div>
-            )}
-            {measurementDescription.description.diagnoses?.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-semibold text-[#ffdcb0]">Rozpoznania:</span>
-                {measurementDescription.description.diagnoses.map((d, idx) => (
-                  <span
-                    key={d.uuid || d.name + idx}
-                    className="rounded-2xl bg-[#653828] px-3 py-1 text-sm font-medium text-[#ffdcb0]"
-                  >
-                    {d.name}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="text-secondary-foreground text-base">
-            <strong>Brak opisu</strong>
-          </div>
-        )}
-      </div>
+          )}
 
-      <div className="ml-7 px-2 py-1">
-        {Array.isArray(measurementDescription?.localization) &&
-        measurementDescription.localization.length > 0 ? (
-          <div className="mb-2 flex flex-wrap items-center gap-2">
-            <span className="text-secondary-foreground font-semibold">Lokalizacja:</span>
-            {measurementDescription.localization
-              .filter(l => l.ROI === false)
-              .map((loc, idx) => (
-                <span
-                  key={loc.uuid || loc.name + idx}
-                  className="rounded-2xl bg-[#62768b] px-3 py-1 text-sm font-medium text-white"
-                >
-                  {loc.name} (wirtualna)
-                </span>
-              ))}
-            {measurementDescription.localization
-              .filter(l => l.ROI !== false)
-              .map((loc, idx) => (
-                <span
-                  key={loc.uuid || loc.name + idx}
-                  className="rounded-2xl bg-[#225BA4] px-3 py-1 text-sm font-medium text-white"
-                >
-                  {loc.name}
-                </span>
-              ))}
+          <div className="ml-7 px-2 py-1">
+            {measurementDescription?.description?.features?.length > 0 ? (
+              <div>
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <span className="text-secondary-foreground font-semibold">Cechy:</span>
+                  {measurementDescription.description.features.map((feature, idx) => (
+                    <span
+                      key={feature.uuid || feature.name + idx}
+                      className="rounded-2xl bg-[#23274a] px-3 py-1 text-sm font-medium text-white"
+                    >
+                      {feature.name}
+                    </span>
+                  ))}
+                </div>
+                {measurementDescription.description.conclusions?.length > 0 && (
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <span className="font-semibold text-pink-300">Wnioski:</span>
+                    {measurementDescription.description.conclusions.map((c, idx) => (
+                      <span
+                        key={c.uuid || c.name + idx}
+                        className="rounded-2xl bg-pink-900 px-3 py-1 text-sm font-medium text-pink-200"
+                      >
+                        {c.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {measurementDescription.description.diagnoses?.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-semibold text-[#ffdcb0]">Rozpoznania:</span>
+                    {measurementDescription.description.diagnoses.map((d, idx) => (
+                      <span
+                        key={d.uuid || d.name + idx}
+                        className="rounded-2xl bg-[#653828] px-3 py-1 text-sm font-medium text-[#ffdcb0]"
+                      >
+                        {d.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-secondary-foreground text-base">
+                <strong>Brak opisu</strong>
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="text-secondary-foreground text-base">
-            <strong>Brak lokalizacji</strong>
+
+          <div className="ml-7 px-2 py-1">
+            {Array.isArray(measurementDescription?.localization) &&
+            measurementDescription.localization.length > 0 ? (
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <span className="text-secondary-foreground font-semibold">Lokalizacja:</span>
+                {measurementDescription.localization
+                  .filter(l => l.ROI === false)
+                  .map((loc, idx) => (
+                    <span
+                      key={loc.uuid || loc.name + idx}
+                      className="rounded-2xl bg-[#62768b] px-3 py-1 text-sm font-medium text-white"
+                    >
+                      {getDeepestName(loc)} (wirtualna)
+                    </span>
+                  ))}
+                {measurementDescription.localization
+                  .filter(l => l.ROI !== false)
+                  .map((loc, idx) => (
+                    <span
+                      key={loc.uuid || loc.name + idx}
+                      className="rounded-2xl bg-[#225BA4] px-3 py-1 text-sm font-medium text-white"
+                    >
+                      {getDeepestName(loc)}
+                    </span>
+                  ))}
+              </div>
+            ) : (
+              <div className="text-secondary-foreground text-base">
+                <strong>Brak lokalizacji</strong>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 };
