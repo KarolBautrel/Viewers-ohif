@@ -167,14 +167,12 @@ export default function FeatureTree({ data, onDone, onBack }) {
     <div className="flex w-full flex-col gap-4">
       <div className="flex flex-row items-center gap-2">
         <span className="text-lg font-semibold text-[#C9C9C9]">Wybierz cechy</span>
-        {pathStack.length > 0 && (
-          <button
-            className="ml-auto rounded bg-[#23274a] px-3 py-1 text-xs text-white"
-            onClick={handleBack}
-          >
-            Wróć
-          </button>
-        )}
+        <button
+          className="ml-auto rounded bg-[#23274a] px-3 py-1 text-xs text-white hover:bg-[#2f335d]"
+          onClick={handleBack}
+        >
+          {pathStack.length === 0 ? 'Wyjdź' : 'Wróć'}
+        </button>
       </div>
 
       {currentLevel.map(({ parentNode, childNodes }) => (

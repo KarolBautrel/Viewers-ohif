@@ -122,19 +122,32 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
     entry => (entry.node.children_lokalizacja || []).length > 0
   );
 
+  const selectedLabels = selectedNodes.map(n => n.node.name);
+
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="flex flex-row items-center gap-2">
-        <span className="text-lg font-semibold text-[#C9C9C9]">Wybierz lokalizacje</span>
-        {pathStack.length > 0 && (
-          <button
-            className="ml-auto rounded bg-[#23274a] px-3 py-1 text-xs text-white"
-            onClick={handleBack}
-          >
-            Wróć
-          </button>
-        )}
+        <span className="text-lg font-semibold text-[#C9C9C9]">Lokalizacja ROI</span>
+        <button
+          className="ml-auto rounded bg-[#23274a] px-3 py-1 text-xs text-white hover:bg-[#2f335d]"
+          onClick={handleBack}
+        >
+          {pathStack.length === 0 ? 'Wyjdź' : 'Wróć'}
+        </button>
       </div>
+
+      {selectedLabels.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {selectedLabels.map(label => (
+            <span
+              key={label}
+              className="rounded-2xl bg-blue-900 px-3 py-1 text-xs font-medium text-blue-100"
+            >
+              {label}
+            </span>
+          ))}
+        </div>
+      )}
 
       {currentLevel.map(({ parentNode, childNodes }) => (
         <div
@@ -144,7 +157,7 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
           <div className="mb-1 text-xs text-[#C9C9C9]">
             Lokalizacje pochodzące od: {parentNode.name}
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {childNodes.map(child => {
               const selected = selectedNodes.find(
                 n =>
@@ -154,10 +167,14 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
               return (
                 <button
                   key={child.element_id_property + parentNode.name}
-                  className={`rounded px-3 py-2 text-sm font-semibold ${selected ? 'bg-[#14d6f8] text-black' : 'bg-[#23274a] text-white'}`}
+                  className={`rounded px-4 py-3 text-base font-semibold transition ${
+                    selected
+                      ? 'bg-[#348CFD] text-white hover:bg-[#225BA4]'
+                      : 'bg-[#23274a] text-white hover:bg-[#2f335d]'
+                  }`}
                   onClick={() => toggleSelect(child, parentNode)}
                 >
-                  {child.name} (od: {parentNode.name})
+                  {child.name}
                 </button>
               );
             })}
@@ -169,26 +186,26 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
         <div className="flex flex-col gap-2">
           {hasNextLevel && (
             <button
-              className="mt-4 w-full rounded bg-[#348CFD] py-2 font-bold text-white hover:bg-[#225BA4]"
+              className="mt-4 w-full rounded bg-[#14d6f8] py-3 text-lg font-bold text-black hover:bg-[#0db8d7]"
               onClick={handleNextLevel}
             >
-              Dalej
+              Przejdź dalej
             </button>
           )}
           <button
-            className="mt-2 w-full rounded bg-green-700 py-2 text-white"
+            className="mt-2 w-full rounded bg-[#1f3b82] py-3 text-lg text-white hover:bg-[#16285b]"
             onClick={handleFinish}
           >
-            Zakończ wybór
+            Zakończ wybór lokalizacji
           </button>
         </div>
       )}
 
       <button
-        className="mt-3 w-full rounded bg-[#23274a] py-2 text-xs text-[#C9C9C9]"
+        className="mt-3 w-full text-center text-xs text-[#C9C9C9] hover:underline"
         onClick={handleReset}
       >
-        Reset
+        Resetuj lokalizacje
       </button>
     </div>
   );

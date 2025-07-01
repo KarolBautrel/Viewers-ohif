@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 export function ReferralDataSelector({
   referralData,
@@ -9,6 +10,8 @@ export function ReferralDataSelector({
   circumstancesData: string[];
   onOpenModal: () => void;
 }) {
+  const [expanded, setExpanded] = useState(true);
+
   const renderPills = (arr: string[]) =>
     arr.length > 0 ? (
       <div className="mt-1 flex flex-wrap gap-2">
@@ -26,26 +29,37 @@ export function ReferralDataSelector({
     );
 
   return (
-    <div className="mb-4 w-full">
-      <div className="flex justify-center">
-        <button
-          className="rounded bg-blue-800 px-3 py-1.5 text-sm text-white transition hover:bg-blue-900"
-          onClick={onOpenModal}
-          type="button"
-        >
-          Modyfikuj dane wejsciowe
-        </button>
-      </div>
-      <div className="mt-3">
-        <div>
-          <span className="text-sm font-semibold text-blue-200">Dane ze skierowania:</span>
-          {renderPills(referralData)}
+    <div className="mb-4 w-full rounded p-3">
+      <button
+        className="flex w-full items-center justify-between text-left text-sm font-semibold text-blue-200"
+        onClick={() => setExpanded(!expanded)}
+        type="button"
+      >
+        <span>Dane wyjściowe</span>
+        {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+      </button>
+
+      {expanded && (
+        <div className="mt-3">
+          <div className="mb-3">
+            <span className="text-sm font-semibold text-blue-200">Dane ze skierowania:</span>
+            {renderPills(referralData)}
+          </div>
+          <div>
+            <span className="text-sm font-semibold text-blue-200">Warunki badania:</span>
+            {renderPills(circumstancesData)}
+          </div>
+          <div className="mt-4 flex justify-center">
+            <button
+              className="rounded bg-blue-800 px-3 py-1.5 text-sm text-white transition hover:bg-blue-900"
+              onClick={onOpenModal}
+              type="button"
+            >
+              Modyfikuj dane wejściowe
+            </button>
+          </div>
         </div>
-        {/* <div className="mt-2">
-          <span className="text-sm font-semibold text-blue-200">Warunki badania:</span>
-          {renderPills(circumstancesData)}
-        </div> */}
-      </div>
+      )}
     </div>
   );
 }

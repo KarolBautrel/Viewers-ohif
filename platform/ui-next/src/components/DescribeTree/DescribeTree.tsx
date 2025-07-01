@@ -96,12 +96,7 @@ export default function DescribeTree({
   async function fetchLocations(isVirtual = false) {
     setLoading(true);
     setError(null);
-    /// Za kazdym razem, gdy zmieniamy lokalizacje, opis
-    // musi sie zrestartowac, dlatego daje desc na null
-    setDescribeResult(r => ({
-      ...r,
-      description: null,
-    }));
+    setDescribeResult(r => ({ ...r, description: null }));
     try {
       const res = await fetch(`${API_URL}/api/neo/objawy/by-name/lokalizacja/`);
       if (!res.ok) throw new Error('Błąd pobierania lokalizacji');
@@ -132,7 +127,7 @@ export default function DescribeTree({
     const flaggedLocations = selectedPath.map(applyROIFalseRecursive);
     setDescribeResult(r => ({
       ...r,
-      localization: [...r.localization, ...flaggedLocations],
+      localization: [...(r.localization || []).filter(l => l.ROI !== false), ...flaggedLocations],
     }));
     setStep('selectMode');
   }
@@ -145,6 +140,10 @@ export default function DescribeTree({
     setStep('selectMode');
   }
 
+  const isReadyToConfirm =
+    Array.isArray(describeResult.localization) &&
+    describeResult.localization.length > 0 &&
+    describeResult.description !== null;
   return (
     <div className="flex min-h-screen flex-col items-center justify-start bg-[#090C2A] py-6">
       <div className="relative flex max-h-screen w-[342px] flex-col gap-4 rounded-lg bg-[#090C2A] p-4 shadow">
@@ -165,47 +164,57 @@ export default function DescribeTree({
               className="rounded bg-[#348CFD] py-2 text-white"
               onClick={() => fetchLocations()}
             >
-              Edytuj lokalizację
-            </button>
-            <button
-              className="rounded bg-[#348CFD] py-2 text-white"
-              onClick={() => setStep('form')}
-            >
-              Edytuj opis (cechy)
+              Edytuj lokalizację ROI
             </button>
             <button
               className="rounded bg-[#225BA4] py-2 text-white"
               onClick={() => fetchLocations(true)}
             >
-              Dodaj kolejne lokalizacje (wirtualne)
+              Dodaj lokalizacje poza ROI
             </button>
+            <button
+              className="rounded bg-[#14d6f8] py-2 font-bold text-black hover:bg-[#0db8d7]"
+              onClick={() => setStep('form')}
+            >
+              Opisuj
+            </button>
+
             {describeResult.localization?.length > 0 && (
               <div className="mt-4">
-                <span className="text-sm font-semibold text-white">Aktualne lokalizacje:</span>
+                <span className="text-sm font-semibold text-white">Lokalizacja pomiaru:</span>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {describeResult.localization.map((loc, idx) => (
                     <span
                       key={idx}
-                      className={`rounded-2xl px-3 py-1 text-sm font-medium ${loc.ROI === false ? 'bg-[#62768b] text-white' : 'bg-[#225BA4] text-white'}`}
+                      className={`rounded-2xl px-3 py-1 text-sm font-medium ${
+                        loc.ROI === false ? 'bg-[#62768b] text-white' : 'bg-[#225BA4] text-white'
+                      }`}
                     >
-                      {loc.name} {loc.ROI === false ? '(wirtualna)' : ''}
+                      {loc.name} {loc.ROI === false ? '(poza ROI)' : ''}
                     </span>
                   ))}
                 </div>
               </div>
             )}
+
             <button
-              className="mt-4 rounded bg-green-600 py-2 text-white"
-              onClick={() =>
+              className={`mt-4 w-full rounded py-2 text-white transition ${
+                isReadyToConfirm
+                  ? 'cursor-pointer bg-green-600 hover:bg-green-700'
+                  : 'cursor-not-allowed bg-[#101225] text-gray-500'
+              }`}
+              onClick={() => {
+                if (!isReadyToConfirm) return;
                 onSelect({
                   localization: describeResult.localization,
                   description: describeResult.description,
                   circumstances: describeResult.circumstances,
                   referral: referralData,
-                })
-              }
+                });
+              }}
+              disabled={!isReadyToConfirm}
             >
-              Zatwierdź i zakończ
+              Zatwierdź
             </button>
           </div>
         )}
@@ -254,14 +263,23 @@ export default function DescribeTree({
                 ))}
               </select>
             </label>
-            <button
-              type="button"
-              onClick={fetchFeatures}
-              disabled={!findingName || loading}
-              className="rounded bg-[#348CFD] py-2 text-white"
-            >
-              {loading ? 'Ładowanie...' : 'Pobierz cechy'}
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setStep('selectMode')}
+                className="flex-1 rounded bg-[#23274a] py-2 text-white"
+              >
+                Wyjdź
+              </button>
+              <button
+                type="button"
+                onClick={fetchFeatures}
+                disabled={!findingName || loading}
+                className="flex-1 rounded bg-[#348CFD] py-2 text-white"
+              >
+                {loading ? 'Ładowanie...' : 'Pobierz cechy'}
+              </button>
+            </div>
             {error && <div className="text-red-400">{error}</div>}
           </form>
         )}
@@ -270,7 +288,7 @@ export default function DescribeTree({
           <FeatureTree
             data={featureData}
             onDone={handleFeatureDone}
-            onBack={() => setStep('form')}
+            onBack={() => setStep('selectMode')}
           />
         )}
       </div>

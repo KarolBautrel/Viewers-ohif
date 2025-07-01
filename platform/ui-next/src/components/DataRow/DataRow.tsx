@@ -288,83 +288,84 @@ const DataRow: React.FC<DataRowProps> = ({
             </div>
           )}
 
-          <div className="ml-7 px-2 py-1">
-            {measurementDescription?.description?.features?.length > 0 ? (
-              <div>
-                <div className="mb-2 flex flex-wrap items-center gap-2">
-                  <span className="text-secondary-foreground font-semibold">Cechy:</span>
-                  {measurementDescription.description.features.map((feature, idx) => (
-                    <span
-                      key={feature.uuid || feature.name + idx}
-                      className="rounded-2xl bg-[#23274a] px-3 py-1 text-sm font-medium text-white"
-                    >
-                      {feature.name}
-                    </span>
-                  ))}
-                </div>
-                {measurementDescription.description.conclusions?.length > 0 && (
-                  <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <span className="font-semibold text-pink-300">Wnioski:</span>
-                    {measurementDescription.description.conclusions.map((c, idx) => (
-                      <span
-                        key={c.uuid || c.name + idx}
-                        className="rounded-2xl bg-pink-900 px-3 py-1 text-sm font-medium text-pink-200"
-                      >
-                        {c.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {measurementDescription.description.diagnoses?.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-semibold text-[#ffdcb0]">Rozpoznania:</span>
-                    {measurementDescription.description.diagnoses.map((d, idx) => (
-                      <span
-                        key={d.uuid || d.name + idx}
-                        className="rounded-2xl bg-[#653828] px-3 py-1 text-sm font-medium text-[#ffdcb0]"
-                      >
-                        {d.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
+          <div className="ml-7 flex flex-col gap-4 px-2 py-1">
+            {/* {measurementDescription?.measurementSize && (
+              <div className="flex flex-col gap-1">
+                <span className="text-secondary-foreground font-semibold">Rozmiar:</span>
+                <span className="mt-1 w-fit rounded-2xl bg-[#5e3ea1] px-3 py-1 text-sm font-medium text-white">
+                  {measurementDescription.measurementSize} mm
+                </span>
               </div>
-            ) : (
-              <div className="text-secondary-foreground text-base">
-                <strong>Brak opisu</strong>
+            )} */}
+
+            {Array.isArray(measurementDescription?.localization) &&
+              measurementDescription.localization.length > 0 && (
+                <div className="flex flex-col gap-1">
+                  <span className="text-secondary-foreground font-semibold">
+                    Lokalizacja pomiaru:
+                  </span>
+                  {measurementDescription.localization
+                    .filter(l => l.ROI !== false)
+                    .map((loc, idx) => (
+                      <span
+                        key={loc.uuid || loc.name + idx}
+                        className="mt-1 w-fit rounded-2xl bg-[#225BA4] px-3 py-1 text-sm font-medium text-white"
+                      >
+                        {getDeepestName(loc)}
+                      </span>
+                    ))}
+                  {measurementDescription.localization
+                    .filter(l => l.ROI === false)
+                    .map((loc, idx) => (
+                      <span
+                        key={loc.uuid || loc.name + idx}
+                        className="mt-1 w-fit rounded-2xl bg-[#62768b] px-3 py-1 text-sm font-medium text-white"
+                      >
+                        {getDeepestName(loc)} (wirtualna)
+                      </span>
+                    ))}
+                </div>
+              )}
+
+            {measurementDescription?.description?.features?.length > 0 && (
+              <div className="flex flex-col gap-1">
+                <span className="text-secondary-foreground font-semibold">Cechy:</span>
+                {measurementDescription.description.features.map((feature, idx) => (
+                  <span
+                    key={feature.uuid || feature.name + idx}
+                    className="mt-1 w-fit rounded-2xl bg-[#23274a] px-3 py-1 text-sm font-medium text-white"
+                  >
+                    {feature.name}
+                  </span>
+                ))}
               </div>
             )}
-          </div>
 
-          <div className="ml-7 px-2 py-1">
-            {Array.isArray(measurementDescription?.localization) &&
-            measurementDescription.localization.length > 0 ? (
-              <div className="mb-2 flex flex-wrap items-center gap-2">
-                <span className="text-secondary-foreground font-semibold">Lokalizacja:</span>
-                {measurementDescription.localization
-                  .filter(l => l.ROI === false)
-                  .map((loc, idx) => (
-                    <span
-                      key={loc.uuid || loc.name + idx}
-                      className="rounded-2xl bg-[#62768b] px-3 py-1 text-sm font-medium text-white"
-                    >
-                      {getDeepestName(loc)} (wirtualna)
-                    </span>
-                  ))}
-                {measurementDescription.localization
-                  .filter(l => l.ROI !== false)
-                  .map((loc, idx) => (
-                    <span
-                      key={loc.uuid || loc.name + idx}
-                      className="rounded-2xl bg-[#225BA4] px-3 py-1 text-sm font-medium text-white"
-                    >
-                      {getDeepestName(loc)}
-                    </span>
-                  ))}
+            {measurementDescription?.description?.conclusions?.length > 0 && (
+              <div className="flex flex-col gap-1">
+                <span className="font-semibold text-pink-300">Wnioski:</span>
+                {measurementDescription.description.conclusions.map((c, idx) => (
+                  <span
+                    key={c.uuid || c.name + idx}
+                    className="mt-1 w-fit rounded-2xl bg-pink-900 px-3 py-1 text-sm font-medium text-pink-200"
+                  >
+                    {c.name}
+                  </span>
+                ))}
               </div>
-            ) : (
-              <div className="text-secondary-foreground text-base">
-                <strong>Brak lokalizacji</strong>
+            )}
+
+            {measurementDescription?.description?.diagnoses?.length > 0 && (
+              <div className="flex flex-col gap-1">
+                <span className="font-semibold text-[#ffdcb0]">Rozpoznania:</span>
+                {measurementDescription.description.diagnoses.map((d, idx) => (
+                  <span
+                    key={d.uuid || d.name + idx}
+                    className="mt-1 w-fit rounded-2xl bg-[#653828] px-3 py-1 text-sm font-medium text-[#ffdcb0]"
+                  >
+                    {d.name}
+                  </span>
+                ))}
               </div>
             )}
           </div>

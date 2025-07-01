@@ -98,11 +98,23 @@ export default function PanelMeasurement({
     }
   }, [displayMeasurements.length]);
 
+  // useEffect(() => {
+  //   if (!userHasSelected) {
+  //     setModalOpen(true);
+  //   }
+  // }, [userHasSelected]);
+  const prevMeasurementCount = useRef(0);
+
   useEffect(() => {
-    if (!userHasSelected) {
+    const firstMeasurement =
+      prevMeasurementCount.current === 0 && displayMeasurements.length > 0 && !userHasSelected;
+
+    if (firstMeasurement) {
       setModalOpen(true);
     }
-  }, [userHasSelected]);
+
+    prevMeasurementCount.current = displayMeasurements.length;
+  }, [displayMeasurements.length, userHasSelected]);
   const bindCommand = (name: string | string[], options?) => {
     return (...args: any[]) => {
       const [uid, description] = args;
