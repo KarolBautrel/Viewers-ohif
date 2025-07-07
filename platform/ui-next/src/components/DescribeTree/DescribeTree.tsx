@@ -27,6 +27,7 @@ export default function DescribeTree({
   >('locations');
   const [featureData, setFeatureData] = useState<CechaNode[] | null>(null);
   const [locData, setLocData] = useState<any[] | null>(null);
+  const [gatingsUuid, setGatingUuids] = useState<string[]>([]);
   const [describeResult, setDescribeResult] = useState({
     circumstances: circumstancecData || null,
     localization: [],
@@ -56,27 +57,37 @@ export default function DescribeTree({
 
   let displayValue = '';
   let displayUnit = '';
+  let unitDimension = '';
   if (currentMeasurement) {
     if (currentMeasurement.toolName === 'Length') {
       const d = currentMeasurement.data?.[Object.keys(currentMeasurement.data)[0]];
       if (d?.length) {
         displayValue = d.length.toFixed(1);
         displayUnit = 'mm';
+        unitDimension = null;
       }
     } else if (['CircleROI', 'PlanarFreehandROI'].includes(currentMeasurement.toolName)) {
       const d = currentMeasurement.data?.[Object.keys(currentMeasurement.data)[0]];
       if (d?.area) {
         displayValue = d.area.toFixed(1);
         displayUnit = 'mm²';
+        unitDimension = 'square';
       }
     }
   }
+  const extractGatingsUUID = gatingData => {
+    return (gatingData?.[0]?.bramkowania || []).map(b => b.from_id);
+  };
 
   async function fetchFeatures() {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ finding_name: findingName, size: displayValue || size });
+      const params = new URLSearchParams({
+        finding_name: findingName,
+        size: displayValue || size,
+        unit_dimension: unitDimension,
+      });
       const res = await fetch(`${API_URL}/api/neo/objawy/by-name/cechy/?${params}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -85,6 +96,7 @@ export default function DescribeTree({
       if (!res.ok) throw new Error('Błąd pobierania cech');
       const data = await res.json();
       setFeatureData(data);
+      setGatingUuids(extractGatingsUUID(data));
       setStep('features');
     } catch (e) {
       setError('Nie udało się pobrać drzewa cech.');
@@ -102,6 +114,7 @@ export default function DescribeTree({
       if (!res.ok) throw new Error('Błąd pobierania lokalizacji');
       const data = await res.json();
       setLocData(data);
+      setGatingUuids(extractGatingsUUID(data));
       setStep(isVirtual ? 'virtualLocation' : 'locations');
     } catch (e) {
       setError('Nie udało się pobrać lokalizacji.');
@@ -289,6 +302,7 @@ export default function DescribeTree({
             data={featureData}
             onDone={handleFeatureDone}
             onBack={() => setStep('selectMode')}
+            gatingUuids={gatingsUuid}
           />
         )}
       </div>

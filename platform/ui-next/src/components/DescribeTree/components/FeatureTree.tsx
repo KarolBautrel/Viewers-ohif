@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
 
-export default function FeatureTree({ data, onDone, onBack }) {
+export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
   const [pathStack, setPathStack] = useState<any[]>([]);
   const [currentLevel, setCurrentLevel] = useState([
     { parentNode: data[0], childNodes: data[0].children_cecha || [] },
   ]);
   const [selectedNodes, setSelectedNodes] = useState<any[]>([]);
+
+  function isUuidInGating(element) {
+    if (!element?.gating_uuid) return true;
+    console.log('GATING!!!!!!', element, gatingUuids.includes(element.gating_uuid), gatingUuids);
+    return gatingUuids.includes(element.gating_uuid);
+  }
 
   function toggleSelect(node: any, parent: any) {
     const exists = selectedNodes.find(
@@ -30,7 +36,7 @@ export default function FeatureTree({ data, onDone, onBack }) {
     const nextLevel = selectedNodes
       .flatMap(entry => ({
         parentNode: entry.node,
-        childNodes: entry.node.children_cecha || [],
+        childNodes: (entry.node.children_cecha || []).filter(child => isUuidInGating(child)),
       }))
       .filter(entry => entry.childNodes.length > 0);
 
@@ -89,8 +95,13 @@ export default function FeatureTree({ data, onDone, onBack }) {
       extractNodeSuggestions(node, conclusionMap, diagnosisMap);
     });
 
-    const conclusions = Array.from(conclusionMap.values()).sort((a, b) => b.weight - a.weight);
-    const diagnoses = Array.from(diagnosisMap.values()).sort((a, b) => b.weight - a.weight);
+    const conclusions = Array.from(conclusionMap.values())
+      .filter(c => isUuidInGating(c))
+      .sort((a, b) => b.weight - a.weight);
+
+    const diagnoses = Array.from(diagnosisMap.values())
+      .filter(d => isUuidInGating(d))
+      .sort((a, b) => b.weight - a.weight);
 
     return { conclusions, diagnoses };
   }
@@ -101,6 +112,8 @@ export default function FeatureTree({ data, onDone, onBack }) {
     diagnosisMap: Map<string, any>
   ) {
     (node.sugeruje_wnioski ?? []).forEach(w => {
+      if (isUuidInGating(w)) return;
+
       const key = w.name;
       if (conclusionMap.has(key)) {
         const existing = conclusionMap.get(key);
@@ -111,6 +124,8 @@ export default function FeatureTree({ data, onDone, onBack }) {
     });
 
     (node.sugeruje_rozpoznanie ?? []).forEach(r => {
+      if (isUuidInGating(r)) return;
+
       const key = r.name;
       if (diagnosisMap.has(key)) {
         const existing = diagnosisMap.get(key);
@@ -121,6 +136,8 @@ export default function FeatureTree({ data, onDone, onBack }) {
     });
 
     (node.suggested_rozpoznanie ?? []).forEach(r => {
+      if (isUuidInGating(r)) return;
+
       const key = r.name;
       if (diagnosisMap.has(key)) {
         const existing = diagnosisMap.get(key);
@@ -132,6 +149,8 @@ export default function FeatureTree({ data, onDone, onBack }) {
 
     (node.children_dane_z_pomiaru ?? []).forEach(d => {
       (d.sugeruje_wnioski ?? []).forEach(w => {
+        if (isUuidInGating(w)) return;
+
         const key = w.name;
         if (conclusionMap.has(key)) {
           const existing = conclusionMap.get(key);
@@ -142,6 +161,8 @@ export default function FeatureTree({ data, onDone, onBack }) {
       });
 
       (d.sugeruje_rozpoznanie ?? []).forEach(r => {
+        if (isUuidInGating(r)) return;
+
         const key = r.name;
         if (diagnosisMap.has(key)) {
           const existing = diagnosisMap.get(key);
@@ -161,7 +182,12 @@ export default function FeatureTree({ data, onDone, onBack }) {
     pathStack.flatMap(step => step.selected.map(s => s.node)).concat(selectedNodes.map(s => s.node))
   ).diagnoses;
 
-  const hasNextLevel = selectedNodes.some(entry => (entry.node.children_cecha || []).length > 0);
+  const hasNextLevel = selectedNodes.some(entry => {
+    const availableChildren = (entry.node.children_cecha || []).filter(child =>
+      isUuidInGating(child)
+    );
+    return availableChildren.length > 0;
+  });
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -182,22 +208,26 @@ export default function FeatureTree({ data, onDone, onBack }) {
         >
           <div className="mb-1 text-xs text-[#C9C9C9]">Cechy pochodzące od: {parentNode.name}</div>
           <div className="flex flex-col gap-2">
-            {childNodes.map(child => {
-              const selected = selectedNodes.find(
-                n =>
-                  n.node.element_id_property === child.element_id_property &&
-                  n.parentName === parentNode.name
-              );
-              return (
-                <button
-                  key={child.element_id_property + parentNode.name}
-                  className={`rounded px-3 py-2 text-sm font-semibold ${selected ? 'bg-[#14d6f8] text-black' : 'bg-[#23274a] text-white'}`}
-                  onClick={() => toggleSelect(child, parentNode)}
-                >
-                  {child.name} (od: {parentNode.name})
-                </button>
-              );
-            })}
+            {childNodes
+              .filter(child => isUuidInGating(child))
+              .map(child => {
+                const selected = selectedNodes.find(
+                  n =>
+                    n.node.element_id_property === child.element_id_property &&
+                    n.parentName === parentNode.name
+                );
+                return (
+                  <button
+                    key={child.element_id_property + parentNode.name}
+                    className={`rounded px-3 py-2 text-sm font-semibold ${
+                      selected ? 'bg-[#14d6f8] text-black' : 'bg-[#23274a] text-white'
+                    }`}
+                    onClick={() => toggleSelect(child, parentNode)}
+                  >
+                    {child.name} (od: {parentNode.name})
+                  </button>
+                );
+              })}
           </div>
         </div>
       ))}
