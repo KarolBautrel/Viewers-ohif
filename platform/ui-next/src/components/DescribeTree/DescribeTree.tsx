@@ -75,6 +75,7 @@ export default function DescribeTree({
       }
     }
   }
+
   const extractGatingsUUID = gatingData => {
     return (gatingData?.[0]?.bramkowania || []).map(b => b.from_id);
   };
@@ -93,13 +94,19 @@ export default function DescribeTree({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ referral_data: referralData }),
       });
-      if (!res.ok) throw new Error('Błąd pobierania cech');
+
       const data = await res.json();
+
+      if (!res.ok || !Array.isArray(data) || data.length === 0) {
+        throw new Error('Brak danych cech lub niepoprawna odpowiedź.');
+      }
+
       setFeatureData(data);
       setGatingUuids(extractGatingsUUID(data));
       setStep('features');
     } catch (e) {
-      setError('Nie udało się pobrać drzewa cech.');
+      console.error(e);
+      setError((e as Error).message || 'Nie udało się pobrać drzewa cech.');
     } finally {
       setLoading(false);
     }
@@ -111,13 +118,18 @@ export default function DescribeTree({
     setDescribeResult(r => ({ ...r, description: null }));
     try {
       const res = await fetch(`${API_URL}/api/neo/objawy/by-name/lokalizacja/`);
-      if (!res.ok) throw new Error('Błąd pobierania lokalizacji');
       const data = await res.json();
+
+      if (!res.ok || !Array.isArray(data) || data.length === 0) {
+        throw new Error('Brak lokalizacji lub niepoprawna odpowiedź.');
+      }
+
       setLocData(data);
       setGatingUuids(extractGatingsUUID(data));
       setStep(isVirtual ? 'virtualLocation' : 'locations');
     } catch (e) {
-      setError('Nie udało się pobrać lokalizacji.');
+      console.error(e);
+      setError((e as Error).message || 'Nie udało się pobrać lokalizacji.');
     } finally {
       setLoading(false);
     }
@@ -157,9 +169,34 @@ export default function DescribeTree({
     Array.isArray(describeResult.localization) &&
     describeResult.localization.length > 0 &&
     describeResult.description !== null;
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-start bg-[#090C2A] py-6">
       <div className="relative flex max-h-screen w-[342px] flex-col gap-4 rounded-lg bg-[#090C2A] p-4 shadow">
+        {loading && (
+          <div className="pointer-events-auto absolute inset-0 z-50 flex items-center justify-center bg-[#090C2A]/80 backdrop-blur-sm">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-white border-t-transparent" />
+          </div>
+        )}
+
+        {error && !loading && (
+          <div className="absolute inset-0 z-40 flex items-center justify-center bg-[#090C2A]/90 px-4 text-center">
+            <div className="px- rounded bg-[#090C2A] py-3 text-sm text-white shadow-lg">
+              <p className="mb-2 font-semibold">Wystąpił błąd:</p>
+              <p>Nie udalo sie pobrac danych do drzewa.</p>
+              <button
+                onClick={() => {
+                  setError(null);
+                  onCancel();
+                }}
+                className="mt-4 rounded bg-[#225BA4] px-3 py-1 text-white hover:bg-[#2b6cb0]"
+              >
+                Wróć
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between">
           <span className="text-xl font-semibold text-[#C9C9C9]">Opisz pomiar</span>
           <button
@@ -173,6 +210,7 @@ export default function DescribeTree({
         {step === 'selectMode' && (
           <div className="flex flex-col gap-3">
             <span className="text-sm text-white">Co chcesz zrobić?</span>
+
             <button
               className="rounded bg-[#348CFD] py-2 text-white"
               onClick={() => fetchLocations()}
@@ -293,7 +331,7 @@ export default function DescribeTree({
                 {loading ? 'Ładowanie...' : 'Pobierz cechy'}
               </button>
             </div>
-            {error && <div className="text-red-400">{error}</div>}
+            {error && <div className="rounded bg-red-800 p-2 text-sm text-white">{error}</div>}
           </form>
         )}
 
