@@ -1,55 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import CircumstancesTree from '../DescribeTree/components/CircumstancesTree';
 import MultiSelect from '../MultiSelect/MultiSelect';
-
-export const DANE_ZE_SKIEROWANIA = [
-  'nikotynizm',
-  'nowotwór złośliwy w wywiadzie',
-  'pacjent w immunosupresji',
-  'zakażenie wirusem HIV/AIDS',
-  'stan po przeszczepie allogenicznym narządu/szpiku',
-  'czynniki ryzyka',
-  'kontrola po roku',
-  'kontrola po >600 dniach',
-  'kontrola po 400-600 dniach',
-  'kontrola po <=400 dniach',
-  'kontrola po >400 dniach',
-  'kontrola po 4 latach ',
-  'kontrola po 3 miesiącach',
-  'badanie kontrolne',
-  'kontrola po 3=>=6 miesiącach',
-];
-
-async function fetchCircumstancesTree() {
-  return [
-    {
-      name: 'Pozycja pacjenta',
-      id: 'a1',
-      children: [
-        { name: 'Leżąca', id: 'a1.1', children: [] },
-        { name: 'Stojąca', id: 'a1.2', children: [] },
-      ],
-    },
-    {
-      name: 'Czynność oddechowa',
-      id: 'b1',
-      children: [
-        { name: 'Wdech', id: 'b1.1', children: [] },
-        { name: 'Wydech', id: 'b1.2', children: [] },
-      ],
-    },
-    {
-      name: 'Kontrast',
-      id: 'c1',
-      children: [
-        { name: 'Tak', id: 'c1.1', children: [] },
-        { name: 'Nie', id: 'c1.2', children: [] },
-      ],
-    },
-  ];
-}
+import { fetchReferralOptions } from '../../apiService/api';
 
 interface DescribeModalProps {
   isOpen: boolean;
@@ -66,9 +20,31 @@ const DescribeModal: React.FC<DescribeModalProps> = ({
 }) => {
   const [skierowanie, setSkierowanie] = useState<string[]>([]);
   const [warunki, setWarunki] = useState<string[]>([]);
+  const [referralOptions, setReferralOptions] = useState<string[]>([]);
+  const [loadingReferrals, setLoadingReferrals] = useState(false);
   const [showCircumstancesTree, setShowCircumstancesTree] = useState(false);
   const [circTreeData, setCircTreeData] = useState<any[] | null>(null);
   const [loadingCirc, setLoadingCirc] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    /// In the future wymigruje wszystko do api serwisu
+    async function loadReferrals() {
+      setLoadingReferrals(true);
+      try {
+        const names = await fetchReferralOptions();
+        setReferralOptions(names);
+      } catch (error) {
+        alert('Błąd podczas pobierania danych ze skierowania.');
+        console.error(error);
+      } finally {
+        setLoadingReferrals(false);
+      }
+    }
+
+    loadReferrals();
+  }, [isOpen]);
 
   async function handleCircumstancesTreeOpen() {
     setLoadingCirc(true);
@@ -87,7 +63,6 @@ const DescribeModal: React.FC<DescribeModalProps> = ({
     setShowCircumstancesTree(false);
   }
 
-  // Block esc/close when forceModal
   const contentProps: any = {};
   if (forceModal) {
     contentProps.onEscapeKeyDown = (e: any) => e.preventDefault();
@@ -132,59 +107,23 @@ const DescribeModal: React.FC<DescribeModalProps> = ({
           </Dialog.Description>
 
           <div className="space-y-4">
-            {/* --- MULTISELECT DLA SKIEROWANIA --- */}
             <section>
               <label className="mb-2 block text-sm font-semibold text-white">
                 Dane ze skierowania
               </label>
-              <MultiSelect
-                options={DANE_ZE_SKIEROWANIA}
-                value={skierowanie}
-                onChange={setSkierowanie}
-              />
+              {loadingReferrals ? (
+                <div className="text-sm text-gray-400">Ładowanie danych...</div>
+              ) : (
+                <MultiSelect
+                  options={referralOptions}
+                  value={skierowanie}
+                  onChange={setSkierowanie}
+                />
+              )}
             </section>
 
             <div className="my-1 border-t border-[#2a3053]" />
-
-            {/* --- DRZEWO DLA WARUNKÓW BADANIA --- */}
-            {/* <section>
-              <label className="mb-2 block text-sm font-semibold text-white">Warunki badania</label>
-              <button
-                type="button"
-                className="rounded-xl bg-[#348CFD] px-4 py-1.5 text-sm font-semibold text-white shadow transition hover:bg-[#225BA4] disabled:opacity-60"
-                onClick={handleCircumstancesTreeOpen}
-                disabled={loadingCirc}
-              >
-                {loadingCirc
-                  ? 'Ładowanie...'
-                  : warunki.length
-                    ? 'Zmień'
-                    : 'Wybierz warunki badania'}
-              </button>
-              {warunki.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {warunki.map(w => (
-                    <span
-                      key={w}
-                      className="rounded-2xl border border-[#2a3053] bg-[#212649] px-3 py-1 text-xs font-medium text-white/90 transition hover:bg-[#28305b]"
-                    >
-                      {w}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </section> */}
           </div>
-
-          {/* {showCircumstancesTree && circTreeData && (
-            <div className="animate-fade-in fixed left-8 bottom-8 z-[60] min-w-[340px] max-w-[400px] rounded-2xl border border-[#2a3053] bg-[#23274a] p-6 shadow-2xl">
-              <CircumstancesTree
-                data={circTreeData}
-                onDone={handleCircumstancesTreeDone}
-                onBack={handleCircumstancesTreeBack}
-              />
-            </div>
-          )} */}
 
           <div className="mt-6 flex justify-between gap-2">
             <button
@@ -217,3 +156,32 @@ const DescribeModal: React.FC<DescribeModalProps> = ({
 };
 
 export default DescribeModal;
+
+async function fetchCircumstancesTree() {
+  return [
+    {
+      name: 'Pozycja pacjenta',
+      id: 'a1',
+      children: [
+        { name: 'Leżąca', id: 'a1.1', children: [] },
+        { name: 'Stojąca', id: 'a1.2', children: [] },
+      ],
+    },
+    {
+      name: 'Czynność oddechowa',
+      id: 'b1',
+      children: [
+        { name: 'Wdech', id: 'b1.1', children: [] },
+        { name: 'Wydech', id: 'b1.2', children: [] },
+      ],
+    },
+    {
+      name: 'Kontrast',
+      id: 'c1',
+      children: [
+        { name: 'Tak', id: 'c1.1', children: [] },
+        { name: 'Nie', id: 'c1.2', children: [] },
+      ],
+    },
+  ];
+}

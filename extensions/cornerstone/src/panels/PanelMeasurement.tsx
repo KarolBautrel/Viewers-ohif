@@ -16,30 +16,6 @@ export type withAppAndFilters = withAppTypes & {
   measurementFilter: (item) => boolean;
 };
 
-export const DANE_ZE_SKIEROWANIA = [
-  ///NA POTRZEBY PREZENTACYJNE, ZROBIMY ENDPOINT KTORY BEDZIE POBIERAL TO
-
-  'nikotynizm',
-  'nowotwór złośliwy w wywiadzie',
-  'pacjent w immunosupresji',
-  'zakażenie wirusem HIV/AIDS',
-  'stan po przeszczepie allogenicznym narządu/szpiku',
-  'czynniki ryzyka',
-  'kontrola po 3 miesiącach',
-  'kontrola po roku',
-  'nikotynizm',
-  'kontrola po >600 dniach',
-  'kontrola po 400-600 dniach',
-  'kontrola po <=400 dniach',
-  'kontrola po >400 dniach',
-  'kontrola po 4 latach ',
-  'kontrola po 3 miesiącach',
-  'badanie kontrolne',
-  'kontrola po 3=>=6 miesiącach',
-];
-
-export const WARUNKI_BADANIA = ['warunek 1', 'warunek 2', 'warunek 3', 'warunek 4'];
-
 export default function PanelMeasurement({
   servicesManager,
   commandsManager,
@@ -55,6 +31,7 @@ export default function PanelMeasurement({
 
   const [describeMode, setDescribeMode] = useState<{ uid: string } | null>(null);
   const [userHasSelected, setUserHasSelected] = useState(false);
+  const [studyUID, setStudyUID] = useState<string | null>(null);
 
   const { measurementService } = servicesManager.services;
   const displayMeasurements = useMeasurements(servicesManager, {
@@ -71,7 +48,15 @@ export default function PanelMeasurement({
     [measurementService]
   );
 
-  const { sendMessage } = useBroadcastChannelSender('radiology-channel', handleWsMessage);
+  const { sendMessage } = useBroadcastChannelSender(
+    studyUID ? `radiology-channel-${studyUID}` : 'radiology-channel-default',
+    handleWsMessage
+  );
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const uid = queryParams.get('StudyInstanceUIDs');
+    setStudyUID(uid);
+  }, []);
 
   const handleRaportJson = () => {
     setShowJSONModal(true);

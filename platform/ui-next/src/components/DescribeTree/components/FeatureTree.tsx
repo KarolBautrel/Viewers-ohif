@@ -9,7 +9,6 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
 
   function isUuidInGating(element) {
     if (!element?.gating_uuid) return true;
-    console.log('GATING!!!!!!', element, gatingUuids.includes(element.gating_uuid), gatingUuids);
     return gatingUuids.includes(element.gating_uuid);
   }
 
@@ -112,7 +111,7 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
     diagnosisMap: Map<string, any>
   ) {
     (node.sugeruje_wnioski ?? []).forEach(w => {
-      if (isUuidInGating(w)) return;
+      if (!isUuidInGating(w)) return;
 
       const key = w.name;
       if (conclusionMap.has(key)) {
@@ -124,7 +123,7 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
     });
 
     (node.sugeruje_rozpoznanie ?? []).forEach(r => {
-      if (isUuidInGating(r)) return;
+      if (!isUuidInGating(r)) return;
 
       const key = r.name;
       if (diagnosisMap.has(key)) {
@@ -136,7 +135,7 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
     });
 
     (node.suggested_rozpoznanie ?? []).forEach(r => {
-      if (isUuidInGating(r)) return;
+      if (!isUuidInGating(r)) return;
 
       const key = r.name;
       if (diagnosisMap.has(key)) {
@@ -149,7 +148,7 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
 
     (node.children_dane_z_pomiaru ?? []).forEach(d => {
       (d.sugeruje_wnioski ?? []).forEach(w => {
-        if (isUuidInGating(w)) return;
+        if (!isUuidInGating(w)) return;
 
         const key = w.name;
         if (conclusionMap.has(key)) {
@@ -161,7 +160,7 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
       });
 
       (d.sugeruje_rozpoznanie ?? []).forEach(r => {
-        if (isUuidInGating(r)) return;
+        if (!isUuidInGating(r)) return;
 
         const key = r.name;
         if (diagnosisMap.has(key)) {

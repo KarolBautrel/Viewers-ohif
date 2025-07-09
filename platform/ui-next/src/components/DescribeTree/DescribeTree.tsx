@@ -3,7 +3,8 @@ import CircumstancesTree from './components/CircumstancesTree';
 import FeatureTree from './components/FeatureTree';
 import LocationTree from './components/LocationTree';
 import type { CechaNode } from './types';
-import { API_URL } from './consts';
+import { API_URL } from '../consts';
+import { fetchFeatureTree, fetchLocalizationTree, fetchSymptoms } from '../../apiService/api';
 
 export const OBJAW_RADIOLOGICZNY = ['guzek miąższu płuca', 'mnogie guzki płuca'];
 
@@ -33,6 +34,7 @@ export default function DescribeTree({
     localization: [],
     description: null,
   });
+  const [symptomOptions, setSymptomOptions] = useState<string[]>([]);
 
   const [findingName, setFindingName] = useState<string>('');
   const [size, setSize] = useState<string>('');
@@ -42,6 +44,28 @@ export default function DescribeTree({
   const currentMeasurement = measurements?.find(m => m.uid === uid);
   const hasLocalization = currentMeasurement?.description?.localization?.length > 0;
 
+  useEffect(() => {
+    async function fetchSymptomsOptions() {
+      try {
+        const data = await fetchSymptoms();
+
+        if (Array.isArray(data)) {
+          const names = data
+            .map(symptom => symptom.name)
+            .filter(Boolean)
+            .sort((a, b) => a.localeCompare(b, 'pl'));
+
+          setSymptomOptions(names);
+        } else {
+          throw new Error('Niepoprawna odpowiedź z API.');
+        }
+      } catch (e) {
+        console.error('Błąd pobierania objawów:', e);
+      }
+    }
+
+    fetchSymptomsOptions();
+  }, []);
   useEffect(() => {
     if (hasLocalization) {
       setDescribeResult(r => ({
@@ -84,22 +108,12 @@ export default function DescribeTree({
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({
-        finding_name: findingName,
+      const data = await fetchFeatureTree({
+        findingName,
         size: displayValue || size,
-        unit_dimension: unitDimension,
+        unitDimension,
+        referralData,
       });
-      const res = await fetch(`${API_URL}/api/neo/objawy/by-name/cechy/?${params}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ referral_data: referralData }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !Array.isArray(data) || data.length === 0) {
-        throw new Error('Brak danych cech lub niepoprawna odpowiedź.');
-      }
 
       setFeatureData(data);
       setGatingUuids(extractGatingsUUID(data));
@@ -116,14 +130,9 @@ export default function DescribeTree({
     setLoading(true);
     setError(null);
     setDescribeResult(r => ({ ...r, description: null }));
+
     try {
-      const res = await fetch(`${API_URL}/api/neo/objawy/by-name/lokalizacja/`);
-      const data = await res.json();
-
-      if (!res.ok || !Array.isArray(data) || data.length === 0) {
-        throw new Error('Brak lokalizacji lub niepoprawna odpowiedź.');
-      }
-
+      const data = await fetchLocalizationTree();
       setLocData(data);
       setGatingUuids(extractGatingsUUID(data));
       setStep(isVirtual ? 'virtualLocation' : 'locations');
@@ -303,13 +312,13 @@ export default function DescribeTree({
                 onChange={e => setFindingName(e.target.value)}
                 required
               >
-                <option value="">Pick</option>
-                {OBJAW_RADIOLOGICZNY.map(opt => (
+                <option value="">Wybierz objaw</option>
+                {symptomOptions.map(name => (
                   <option
-                    key={opt}
-                    value={opt}
+                    key={name}
+                    value={name}
                   >
-                    {opt}
+                    {name}
                   </option>
                 ))}
               </select>
