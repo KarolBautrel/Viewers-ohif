@@ -10,17 +10,11 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
 
   function toggleSelect(node: any, parent: any) {
     const exists = selectedNodes.find(
-      n => n.node.element_id_property === node.element_id_property && n.parentName === parent.name
+      n => n.node.uuid === node.uuid && n.parentName === parent.name
     );
     if (exists) {
       setSelectedNodes(prev =>
-        prev.filter(
-          n =>
-            !(
-              n.node.element_id_property === node.element_id_property &&
-              n.parentName === parent.name
-            )
-        )
+        prev.filter(n => !(n.node.uuid === node.uuid && n.parentName === parent.name))
       );
     } else {
       setSelectedNodes(prev => [...prev, { node, parentName: parent.name }]);
@@ -31,7 +25,7 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
     return baseTree.map(node => {
       if (node.name === parentName) {
         const existingChild = (node.children_lokalizacja || []).find(
-          c => c.element_id_property === childNode.element_id_property
+          c => c.uuid === childNode.uuid
         );
         if (existingChild) return node;
 
@@ -151,7 +145,7 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
 
       {currentLevel.map(({ parentNode, childNodes }) => (
         <div
-          key={parentNode.element_id_property}
+          key={parentNode.uuid}
           className="mb-4"
         >
           <div className="mb-1 text-xs text-[#C9C9C9]">
@@ -160,13 +154,11 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
           <div className="flex flex-col gap-3">
             {childNodes.map(child => {
               const selected = selectedNodes.find(
-                n =>
-                  n.node.element_id_property === child.element_id_property &&
-                  n.parentName === parentNode.name
+                n => n.node.uuid === child.uuid && n.parentName === parentNode.name
               );
               return (
                 <button
-                  key={child.element_id_property + parentNode.name}
+                  key={child.uuid + parentNode.name}
                   className={`rounded px-4 py-3 text-base font-semibold transition ${
                     selected
                       ? 'bg-[#348CFD] text-white hover:bg-[#225BA4]'

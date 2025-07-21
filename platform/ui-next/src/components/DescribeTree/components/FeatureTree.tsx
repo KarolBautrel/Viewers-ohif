@@ -1,30 +1,24 @@
 import React, { useState } from 'react';
 
 export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
-  const [pathStack, setPathStack] = useState<any[]>([]);
+  const [pathStack, setPathStack] = useState([]);
   const [currentLevel, setCurrentLevel] = useState([
     { parentNode: data[0], childNodes: data[0].children_cecha || [] },
   ]);
-  const [selectedNodes, setSelectedNodes] = useState<any[]>([]);
+  const [selectedNodes, setSelectedNodes] = useState([]);
 
   function isUuidInGating(element) {
     if (!element?.gating_uuid) return true;
     return gatingUuids.includes(element.gating_uuid);
   }
 
-  function toggleSelect(node: any, parent: any) {
+  function toggleSelect(node, parent) {
     const exists = selectedNodes.find(
-      n => n.node.element_id_property === node.element_id_property && n.parentName === parent.name
+      n => n.node.uuid === node.uuid && n.parentName === parent.name
     );
     if (exists) {
       setSelectedNodes(prev =>
-        prev.filter(
-          n =>
-            !(
-              n.node.element_id_property === node.element_id_property &&
-              n.parentName === parent.name
-            )
-        )
+        prev.filter(n => !(n.node.uuid === node.uuid && n.parentName === parent.name))
       );
     } else {
       setSelectedNodes(prev => [...prev, { node, parentName: parent.name }]);
@@ -67,26 +61,29 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
       .concat(selectedNodes.map(s => s.node));
     const features = allSelected.map((node, index) => ({
       name: node.name,
-      uuid: node.uuid || node.element_id_property || node.id,
+      uuid: node.uuid || node.id,
       type: node.type || 'feature',
       step: index + 1,
     }));
 
     const rootFinding = data?.[0];
-    const finding = rootFinding
-      ? {
-          name: rootFinding.name,
-          uuid: rootFinding.uuid || rootFinding.element_id_property || rootFinding.id,
-          type: rootFinding.type || 'finding',
-        }
-      : null;
-
     const { conclusions, diagnoses } = extractAllSuggestions(allSelected);
 
-    onDone({ features, conclusions, diagnoses, finding });
+    onDone({
+      features,
+      conclusions,
+      diagnoses,
+      finding: rootFinding
+        ? {
+            name: rootFinding.name,
+            uuid: rootFinding.uuid || rootFinding.id,
+            type: rootFinding.type || 'finding',
+          }
+        : null,
+    });
   }
 
-  function extractAllSuggestions(selectedNodes: any[]) {
+  function extractAllSuggestions(selectedNodes = []) {
     const conclusionMap = new Map();
     const diagnosisMap = new Map();
 
@@ -105,14 +102,9 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
     return { conclusions, diagnoses };
   }
 
-  function extractNodeSuggestions(
-    node: any,
-    conclusionMap: Map<string, any>,
-    diagnosisMap: Map<string, any>
-  ) {
+  function extractNodeSuggestions(node, conclusionMap, diagnosisMap) {
     (node.sugeruje_wnioski ?? []).forEach(w => {
       if (!isUuidInGating(w)) return;
-
       const key = w.name;
       if (conclusionMap.has(key)) {
         const existing = conclusionMap.get(key);
@@ -124,7 +116,6 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
 
     (node.sugeruje_rozpoznanie ?? []).forEach(r => {
       if (!isUuidInGating(r)) return;
-
       const key = r.name;
       if (diagnosisMap.has(key)) {
         const existing = diagnosisMap.get(key);
@@ -136,7 +127,6 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
 
     (node.suggested_rozpoznanie ?? []).forEach(r => {
       if (!isUuidInGating(r)) return;
-
       const key = r.name;
       if (diagnosisMap.has(key)) {
         const existing = diagnosisMap.get(key);
@@ -149,7 +139,6 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
     (node.children_dane_z_pomiaru ?? []).forEach(d => {
       (d.sugeruje_wnioski ?? []).forEach(w => {
         if (!isUuidInGating(w)) return;
-
         const key = w.name;
         if (conclusionMap.has(key)) {
           const existing = conclusionMap.get(key);
@@ -161,7 +150,6 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
 
       (d.sugeruje_rozpoznanie ?? []).forEach(r => {
         if (!isUuidInGating(r)) return;
-
         const key = r.name;
         if (diagnosisMap.has(key)) {
           const existing = diagnosisMap.get(key);
@@ -172,6 +160,15 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
       });
     });
   }
+
+  const isLeafLevel =
+    currentLevel.length > 0 &&
+    currentLevel.every(({ childNodes }) => !childNodes || childNodes.length === 0);
+
+  const suggestionsIfNoSelection =
+    isLeafLevel && selectedNodes.length === 0
+      ? extractAllSuggestions([data[0]])
+      : { conclusions: [], diagnoses: [] };
 
   const allConclusions = extractAllSuggestions(
     pathStack.flatMap(step => step.selected.map(s => s.node)).concat(selectedNodes.map(s => s.node))
@@ -202,7 +199,7 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
 
       {currentLevel.map(({ parentNode, childNodes }) => (
         <div
-          key={parentNode.element_id_property}
+          key={parentNode.uuid}
           className="mb-4"
         >
           <div className="mb-1 text-xs text-[#C9C9C9]">Cechy pochodzące od: {parentNode.name}</div>
@@ -211,13 +208,11 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
               .filter(child => isUuidInGating(child))
               .map(child => {
                 const selected = selectedNodes.find(
-                  n =>
-                    n.node.element_id_property === child.element_id_property &&
-                    n.parentName === parentNode.name
+                  n => n.node.uuid === child.uuid && n.parentName === parentNode.name
                 );
                 return (
                   <button
-                    key={child.element_id_property + parentNode.name}
+                    key={child.uuid + parentNode.name}
                     className={`rounded px-3 py-2 text-sm font-semibold ${
                       selected ? 'bg-[#14d6f8] text-black' : 'bg-[#23274a] text-white'
                     }`}
@@ -231,38 +226,67 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
         </div>
       ))}
 
-      {allConclusions.length > 0 && (
-        <div>
-          <div className="mb-1 text-xs font-semibold text-pink-300">Wnioski</div>
-          <div className="flex flex-col gap-1">
-            {allConclusions.map(c => (
-              <div
-                key={c.name}
-                className="flex items-center rounded bg-pink-900/50 px-3 py-1 text-xs font-medium text-pink-100"
-              >
-                <span>{c.name}</span>
-                <span className="ml-2 text-pink-300 opacity-70">(waga: {c.weight})</span>
+      {isLeafLevel && selectedNodes.length === 0 && (
+        <>
+          {suggestionsIfNoSelection.conclusions.length > 0 && (
+            <div>
+              <div className="mb-1 text-xs font-semibold text-pink-300">Wnioski</div>
+              <div className="flex flex-col gap-1">
+                {suggestionsIfNoSelection.conclusions.map(c => (
+                  <div
+                    key={c.name}
+                    className="flex items-center rounded bg-pink-900/50 px-3 py-1 text-xs font-medium text-pink-100"
+                  >
+                    <span>{c.name}</span>
+                    <span className="ml-2 text-pink-300 opacity-70">(waga: {c.weight})</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+            </div>
+          )}
 
-      {allDiagnoses.length > 0 && (
-        <div>
-          <div className="mb-1 text-xs font-semibold text-[#eeb980]">Rozpoznania różnicowe</div>
-          <div className="flex flex-col gap-1">
-            {allDiagnoses.map(d => (
-              <div
-                key={d.name}
-                className="flex items-center rounded bg-[#653828]/80 px-3 py-1 text-xs font-medium text-[#eeb980]"
-              >
-                <span>{d.name}</span>
-                <span className="ml-2 opacity-80">(waga: {d.weight})</span>
+          {suggestionsIfNoSelection.diagnoses.length > 0 && (
+            <div>
+              <div className="mb-1 text-xs font-semibold text-[#eeb980]">Rozpoznania różnicowe</div>
+              <div className="flex flex-col gap-1">
+                {suggestionsIfNoSelection.diagnoses.map(d => (
+                  <div
+                    key={d.name}
+                    className="flex items-center rounded bg-[#653828]/80 px-3 py-1 text-xs font-medium text-[#eeb980]"
+                  >
+                    <span>{d.name}</span>
+                    <span className="ml-2 opacity-80">(waga: {d.weight})</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+          )}
+
+          <div className="mt-2 text-xs text-[#C9C9C9] opacity-80">
+            Brak cech do wyboru dla tego objawu. Możesz zakończyć wybór.
           </div>
-        </div>
+
+          <button
+            className="mt-4 w-full rounded bg-green-700 py-2 text-white"
+            onClick={() => {
+              const rootFinding = data?.[0];
+              onDone({
+                features: [],
+                conclusions: suggestionsIfNoSelection.conclusions,
+                diagnoses: suggestionsIfNoSelection.diagnoses,
+                finding: rootFinding
+                  ? {
+                      name: rootFinding.name,
+                      uuid: rootFinding.uuid || rootFinding.id,
+                      type: rootFinding.type || 'finding',
+                    }
+                  : null,
+              });
+            }}
+          >
+            Zakończ wybór
+          </button>
+        </>
       )}
 
       {selectedNodes.length > 0 && (

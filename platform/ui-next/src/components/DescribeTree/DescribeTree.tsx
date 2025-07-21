@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import CircumstancesTree from './components/CircumstancesTree';
 import FeatureTree from './components/FeatureTree';
 import LocationTree from './components/LocationTree';
 import type { CechaNode } from './types';
-import { API_URL } from '../consts';
 import { fetchFeatureTree, fetchLocalizationTree, fetchSymptoms } from '../../apiService/api';
-
-export const OBJAW_RADIOLOGICZNY = ['guzek miąższu płuca', 'mnogie guzki płuca'];
 
 export default function DescribeTree({
   onSelect,
@@ -35,6 +31,7 @@ export default function DescribeTree({
     description: null,
   });
   const [symptomOptions, setSymptomOptions] = useState<string[]>([]);
+  const [localizationRecon, setLocalizationRecon] = useState<any[]>([]);
 
   const [findingName, setFindingName] = useState<string>('');
   const [size, setSize] = useState<string>('');
@@ -78,6 +75,28 @@ export default function DescribeTree({
       fetchLocations();
     }
   }, []);
+
+  function findReconFromLocalization(selectedLoc, reconFromLocalization = []) {
+    if (!selectedLoc || !reconFromLocalization) return [];
+    const selectedUuids = Array.isArray(selectedLoc)
+      ? selectedLoc.map(l => l.uuid)
+      : [selectedLoc.uuid];
+    let result = [];
+    for (const loc of reconFromLocalization) {
+      if (selectedUuids.includes(loc.uuid)) {
+        for (const meta of loc.children_dane_z_metadanych || []) {
+          for (const recon of meta.children_rozpoznanie_roznicowe || []) {
+            result.push({
+              ...recon,
+              metaName: meta.name,
+              source: 'localization',
+            });
+          }
+        }
+      }
+    }
+    return result;
+  }
 
   let displayValue = '';
   let displayUnit = '';
@@ -153,6 +172,11 @@ export default function DescribeTree({
   }
 
   function handleLocalizationDone(selectedPath: any) {
+    const recon = findReconFromLocalization(
+      selectedPath,
+      currentMeasurement?.description?.recon_from_localization || []
+    );
+    setLocalizationRecon(recon);
     setDescribeResult(r => ({ ...r, localization: selectedPath }));
     setStep('selectMode');
   }
@@ -173,7 +197,16 @@ export default function DescribeTree({
     }));
     setStep('selectMode');
   }
-
+  function mergeDescriptions(arr1 = [], arr2 = []) {
+    console.log({ arr1, arr2 });
+    const byUuid = {};
+    for (const d of [...arr1, ...arr2]) {
+      const key = d.uuid || d.name;
+      if (!byUuid[key]) byUuid[key] = { ...d, weight: d.weight || 1 };
+      else byUuid[key].weight += d.weight || 1;
+    }
+    return Object.values(byUuid);
+  }
   const isReadyToConfirm =
     Array.isArray(describeResult.localization) &&
     describeResult.localization.length > 0 &&
@@ -267,9 +300,17 @@ export default function DescribeTree({
                 if (!isReadyToConfirm) return;
                 onSelect({
                   localization: describeResult.localization,
-                  description: describeResult.description,
+                  description: mergeDescriptions(
+                    [
+                      ...(describeResult.description?.features || []),
+                      ...(describeResult.description?.conclusions || []),
+                      ...(describeResult.description?.diagnoses || []),
+                    ],
+                    localizationRecon
+                  ),
                   circumstances: describeResult.circumstances,
                   referral: referralData,
+                  finding: describeResult.description?.finding,
                 });
               }}
               disabled={!isReadyToConfirm}

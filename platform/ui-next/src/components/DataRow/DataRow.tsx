@@ -289,14 +289,16 @@ const DataRow: React.FC<DataRowProps> = ({
           )}
 
           <div className="ml-7 flex flex-col gap-4 px-2 py-1">
-            {/* {measurementDescription?.measurementSize && (
+            {measurementDescription?.finding?.name && (
               <div className="flex flex-col gap-1">
-                <span className="text-secondary-foreground font-semibold">Rozmiar:</span>
-                <span className="mt-1 w-fit rounded-2xl bg-[#5e3ea1] px-3 py-1 text-sm font-medium text-white">
-                  {measurementDescription.measurementSize} mm
+                <span className="text-secondary-foreground font-semibold">
+                  Objaw radiologiczny:
+                </span>
+                <span className="mt-1 w-fit rounded-2xl bg-[#14d6f8] px-3 py-1 text-sm font-bold text-black">
+                  {measurementDescription.finding.name}
                 </span>
               </div>
-            )} */}
+            )}
 
             {Array.isArray(measurementDescription?.localization) &&
               measurementDescription.localization.length > 0 && (
@@ -327,47 +329,57 @@ const DataRow: React.FC<DataRowProps> = ({
                 </div>
               )}
 
-            {measurementDescription?.description?.features?.length > 0 && (
-              <div className="flex flex-col gap-1">
-                <span className="text-secondary-foreground font-semibold">Cechy:</span>
-                {measurementDescription.description.features.map((feature, idx) => (
-                  <span
-                    key={feature.uuid || feature.name + idx}
-                    className="mt-1 w-fit rounded-2xl bg-[#23274a] px-3 py-1 text-sm font-medium text-white"
-                  >
-                    {feature.name}
-                  </span>
-                ))}
-              </div>
-            )}
+            {Array.isArray(measurementDescription?.description) &&
+              measurementDescription.description.filter(f => f.type === 'cecha').length > 0 && (
+                <div className="flex flex-col gap-1">
+                  <span className="text-secondary-foreground font-semibold">Cechy:</span>
+                  {measurementDescription.description
+                    .filter(feature => feature.type === 'cecha')
+                    .map((feature, idx) => (
+                      <span
+                        key={feature.uuid || feature.name + idx}
+                        className="mt-1 w-fit rounded-2xl bg-[#23274a] px-3 py-1 text-sm font-medium text-white"
+                      >
+                        {feature.name}
+                      </span>
+                    ))}
+                </div>
+              )}
 
-            {measurementDescription?.description?.conclusions?.length > 0 && (
-              <div className="flex flex-col gap-1">
-                <span className="font-semibold text-pink-300">Wnioski:</span>
-                {measurementDescription.description.conclusions.map((c, idx) => (
-                  <span
-                    key={c.uuid || c.name + idx}
-                    className="mt-1 w-fit rounded-2xl bg-pink-900 px-3 py-1 text-sm font-medium text-pink-200"
-                  >
-                    {c.name}
-                  </span>
-                ))}
-              </div>
-            )}
+            {Array.isArray(measurementDescription?.description) &&
+              measurementDescription.description.filter(d => d.type === 'wnioski').length > 0 && (
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-[#ffdcb0]">Wnioski:</span>
+                  {measurementDescription.description
+                    .filter(d => d.type === 'wnioski')
+                    .map((diagnosis, idx) => (
+                      <span
+                        key={diagnosis.uuid || diagnosis.name + idx}
+                        className="mt-1 w-fit rounded-2xl bg-[#7d2424] px-3 py-1 text-sm font-medium text-[#ffdcb0]"
+                      >
+                        {diagnosis.name}
+                      </span>
+                    ))}
+                </div>
+              )}
 
-            {measurementDescription?.description?.diagnoses?.length > 0 && (
-              <div className="flex flex-col gap-1">
-                <span className="font-semibold text-[#ffdcb0]">Rozpoznania:</span>
-                {measurementDescription.description.diagnoses.map((d, idx) => (
-                  <span
-                    key={d.uuid || d.name + idx}
-                    className="mt-1 w-fit rounded-2xl bg-[#653828] px-3 py-1 text-sm font-medium text-[#ffdcb0]"
-                  >
-                    {d.name}
-                  </span>
-                ))}
-              </div>
-            )}
+            {Array.isArray(measurementDescription?.description) &&
+              measurementDescription.description.filter(d => d.type === 'rozpoznanie_roznicowe')
+                .length > 0 && (
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-[#ffdcb0]">Rozpoznania:</span>
+                  {measurementDescription.description
+                    .filter(d => d.type === 'rozpoznanie_roznicowe')
+                    .map((diagnosis, idx) => (
+                      <span
+                        key={diagnosis.uuid || diagnosis.name + idx}
+                        className="mt-1 w-fit rounded-2xl bg-[#653828] px-3 py-1 text-sm font-medium text-[#ffdcb0]"
+                      >
+                        {diagnosis.name}
+                      </span>
+                    ))}
+                </div>
+              )}
           </div>
         </>
       )}
