@@ -10,7 +10,6 @@ function getLeafPill(node) {
 }
 
 export function MeasurementDescriptionDetails({ description }) {
-  useEffect(() => {}, [description]);
   if (!description) return null;
   return (
     <div className="flex flex-col gap-4">

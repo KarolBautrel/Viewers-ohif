@@ -7,22 +7,36 @@ export function ReferralDataSelector({
   onOpenModal,
 }: {
   referralData: string[];
-  circumstancesData: string[];
+  circumstancesData: Record<string, string>[];
   onOpenModal: () => void;
 }) {
   const [expanded, setExpanded] = useState(true);
 
-  const renderPills = (arr: string[]) =>
-    arr.length > 0 ? (
-      <div className="mt-1 flex flex-wrap gap-2">
-        {arr.map(val => (
-          <span
-            key={val}
-            className="rounded-2xl bg-blue-900 px-3 py-1 text-sm font-medium text-blue-100"
-          >
-            {val}
-          </span>
-        ))}
+  const renderPills = (arr: any[], type = 'string') =>
+    arr && arr.length > 0 ? (
+      <div className="mt-1 flex w-full flex-col gap-2">
+        {arr.map((val, idx) => {
+          if (typeof val === 'string') {
+            return (
+              <span
+                key={val}
+                className="block w-full rounded-2xl bg-blue-900 px-3 py-1 text-sm font-medium text-blue-100"
+              >
+                {val}
+              </span>
+            );
+          } else if (val && typeof val === 'object') {
+            return (
+              <span
+                key={val.warunek || idx}
+                className="block w-full rounded-2xl bg-blue-900 px-3 py-1 text-sm font-medium text-blue-100"
+              >
+                {val.warunek}
+              </span>
+            );
+          }
+          return null;
+        })}
       </div>
     ) : (
       <span className="mt-1 block text-sm text-gray-400">Brak wybranych danych</span>
@@ -43,11 +57,11 @@ export function ReferralDataSelector({
         <div className="mt-3">
           <div className="mb-3">
             <span className="text-sm font-semibold text-blue-200">Dane ze skierowania:</span>
-            {renderPills(referralData)}
+            {renderPills(referralData, 'string')}
           </div>
           <div>
             <span className="text-sm font-semibold text-blue-200">Warunki badania:</span>
-            {renderPills(circumstancesData)}
+            {renderPills(circumstancesData, 'condition')}
           </div>
           <div className="mt-4 flex justify-center">
             <button

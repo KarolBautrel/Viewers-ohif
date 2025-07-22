@@ -1,35 +1,5 @@
 import { API_URL } from '../consts';
 
-export async function fetchCircumstancesTree() {
-  // To jest proteza tymczasowa
-  return [
-    {
-      name: 'Pozycja pacjenta',
-      id: 'a1',
-      children: [
-        { name: 'Leżąca', id: 'a1.1', children: [] },
-        { name: 'Stojąca', id: 'a1.2', children: [] },
-      ],
-    },
-    {
-      name: 'Czynność oddechowa',
-      id: 'b1',
-      children: [
-        { name: 'Wdech', id: 'b1.1', children: [] },
-        { name: 'Wydech', id: 'b1.2', children: [] },
-      ],
-    },
-    {
-      name: 'Kontrast',
-      id: 'c1',
-      children: [
-        { name: 'Tak', id: 'c1.1', children: [] },
-        { name: 'Nie', id: 'c1.2', children: [] },
-      ],
-    },
-  ];
-}
-
 export async function fetchReferralOptions(): Promise<string[]> {
   const res = await fetch(`${API_URL}/api/neo/referrals`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -93,6 +63,18 @@ export async function fetchFeatureTree({
 
 export async function fetchSymptoms() {
   const res = await fetch(`${API_URL}/api/neo/symptoms`);
+
+  const data = await res.json();
+
+  if (!res.ok || !Array.isArray(data) || data.length === 0) {
+    throw new Error('Wystapil blad przy pobieraniu objawow radiologicznych.');
+  }
+
+  return data;
+}
+
+export async function fetchConditions() {
+  const res = await fetch(`${API_URL}/api/neo/conditions/all`);
 
   const data = await res.json();
 
