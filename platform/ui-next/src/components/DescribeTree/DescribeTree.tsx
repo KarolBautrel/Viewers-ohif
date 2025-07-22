@@ -4,7 +4,9 @@ import LocationTree from './components/LocationTree';
 import type { CechaNode } from './types';
 import { fetchFeatureTree, fetchLocalizationTree, fetchSymptoms } from '../../apiService/api';
 import SelectModeStep from './components/SelectModeStep';
-import { Step } from './consts';
+import FormStep from './components/FormStep';
+import { Step } from './enums';
+
 export default function DescribeTree({
   onSelect,
   onCancel,
@@ -251,74 +253,31 @@ export default function DescribeTree({
         </div>
 
         {step === 'selectMode' && (
-          <div className="flex flex-col gap-3">
-            <span className="text-sm text-white">Co chcesz zrobić?</span>
-
-            <button
-              className="rounded bg-[#348CFD] py-2 text-white"
-              onClick={() => fetchLocations()}
-            >
-              Edytuj lokalizację ROI
-            </button>
-            <button
-              className="rounded bg-[#225BA4] py-2 text-white"
-              onClick={() => fetchLocations(true)}
-            >
-              Dodaj lokalizacje poza ROI
-            </button>
-            <button
-              className="rounded bg-[#14d6f8] py-2 font-bold text-black hover:bg-[#0db8d7]"
-              onClick={() => setStep(Step.Form)}
-            >
-              Opisuj
-            </button>
-
-            {describeResult.localization?.length > 0 && (
-              <div className="mt-4">
-                <span className="text-sm font-semibold text-white">Lokalizacja pomiaru:</span>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {describeResult.localization.map((loc, idx) => (
-                    <span
-                      key={idx}
-                      className={`rounded-2xl px-3 py-1 text-sm font-medium ${
-                        loc.ROI === false ? 'bg-[#62768b] text-white' : 'bg-[#225BA4] text-white'
-                      }`}
-                    >
-                      {loc.name} {loc.ROI === false ? '(poza ROI)' : ''}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <button
-              className={`mt-4 w-full rounded py-2 text-white transition ${
-                isReadyToConfirm
-                  ? 'cursor-pointer bg-green-600 hover:bg-green-700'
-                  : 'cursor-not-allowed bg-[#101225] text-gray-500'
-              }`}
-              onClick={() => {
-                if (!isReadyToConfirm) return;
-                onSelect({
-                  localization: describeResult.localization,
-                  description: mergeDescriptions(
-                    [
-                      ...(describeResult.description?.features || []),
-                      ...(describeResult.description?.conclusions || []),
-                      ...(describeResult.description?.diagnoses || []),
-                    ],
-                    localizationRecon
-                  ),
-                  circumstances: describeResult.circumstances,
-                  referral: referralData,
-                  finding: describeResult.description?.finding,
-                });
-              }}
-              disabled={!isReadyToConfirm}
-            >
-              Zatwierdź
-            </button>
-          </div>
+          <SelectModeStep
+            describeResult={describeResult}
+            isReadyToConfirm={isReadyToConfirm}
+            onEditLocalization={() => fetchLocations()}
+            onAddVirtualLocation={() => fetchLocations(true)}
+            onDescribe={() => setStep(Step.Form)}
+            onConfirm={() => {
+              if (!isReadyToConfirm) return;
+              onSelect({
+                localization: describeResult.localization,
+                description: mergeDescriptions(
+                  [
+                    ...(describeResult.description?.features || []),
+                    ...(describeResult.description?.conclusions || []),
+                    ...(describeResult.description?.diagnoses || []),
+                  ],
+                  localizationRecon
+                ),
+                circumstances: describeResult.circumstances,
+                referral: referralData,
+                finding: describeResult.description?.finding,
+              });
+            }}
+            onCancel={onCancel}
+          />
         )}
 
         {step === 'locations' && locData && (
@@ -340,50 +299,15 @@ export default function DescribeTree({
         )}
 
         {step === 'form' && (
-          <form
-            onSubmit={e => e.preventDefault()}
-            className="flex flex-col gap-4"
-          >
-            <label className="flex w-full flex-col gap-1">
-              <span className="mb-0.5 flex flex-row items-center text-[14px] font-semibold text-[#C9C9C9]">
-                Wybierz objaw<span className="ml-1 text-[#F03E3E]">*</span>
-              </span>
-              <select
-                className="h-10 w-full rounded border border-[#225BA4] bg-[#0B0F2B] px-3 text-[16px] text-white outline-none"
-                value={findingName}
-                onChange={e => setFindingName(e.target.value)}
-                required
-              >
-                <option value="">Wybierz objaw</option>
-                {symptomOptions.map(name => (
-                  <option
-                    key={name}
-                    value={name}
-                  >
-                    {name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setStep(Step.SelectMode)}
-                className="flex-1 rounded bg-[#23274a] py-2 text-white"
-              >
-                Wyjdź
-              </button>
-              <button
-                type="button"
-                onClick={fetchFeatures}
-                disabled={!findingName || loading}
-                className="flex-1 rounded bg-[#348CFD] py-2 text-white"
-              >
-                {loading ? 'Ładowanie...' : 'Pobierz cechy'}
-              </button>
-            </div>
-            {error && <div className="rounded bg-red-800 p-2 text-sm text-white">{error}</div>}
-          </form>
+          <FormStep
+            symptomOptions={symptomOptions}
+            findingName={findingName}
+            setFindingName={setFindingName}
+            loading={loading}
+            error={error}
+            onBack={() => setStep(Step.SelectMode)}
+            onFetchFeatures={fetchFeatures}
+          />
         )}
 
         {step === 'features' && featureData && (

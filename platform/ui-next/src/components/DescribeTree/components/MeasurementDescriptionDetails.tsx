@@ -10,9 +10,7 @@ function getLeafPill(node) {
 }
 
 export function MeasurementDescriptionDetails({ description }) {
-  useEffect(() => {
-    console.log('>>>>> DESCRIPTION', description);
-  }, [description]);
+  useEffect(() => {}, [description]);
   if (!description) return null;
   return (
     <div className="flex flex-col gap-4">
@@ -41,7 +39,7 @@ export function MeasurementDescriptionDetails({ description }) {
                 return (
                   <span
                     key={loc.uuid || idx}
-                    className="rounded-2xl bg-[#225BA4] px-3 py-1 text-sm font-medium text-white"
+                    className="mt-1 w-full rounded-2xl bg-[#225BA4] px-3 py-1 text-sm font-medium text-white"
                   >
                     {label}
                   </span>
@@ -57,7 +55,7 @@ export function MeasurementDescriptionDetails({ description }) {
                 return (
                   <span
                     key={(loc.uuid || idx) + '_pozaROI'}
-                    className="rounded-2xl bg-[#62768b] px-3 py-1 text-sm font-medium text-white"
+                    className="mt-1 w-full rounded-2xl bg-[#62768b] px-3 py-1 text-sm font-medium text-white"
                   >
                     {label} (poza ROI)
                   </span>
