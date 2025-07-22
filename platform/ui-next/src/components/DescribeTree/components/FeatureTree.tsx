@@ -225,7 +225,43 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
           </div>
         </div>
       ))}
+      {(allConclusions.length > 0 || allDiagnoses.length > 0) && (
+        <div className="mt-2 flex flex-col gap-3">
+          {allConclusions.length > 0 && (
+            <div>
+              <div className="mb-1 text-xs font-semibold text-pink-300">Wnioski</div>
+              <div className="flex flex-col gap-1">
+                {allConclusions.map(c => (
+                  <div
+                    key={c.name}
+                    className="flex items-center rounded bg-pink-900/50 px-3 py-1 text-xs font-medium text-pink-100"
+                  >
+                    <span>{c.name}</span>
+                    <span className="ml-2 text-pink-300 opacity-70">(waga: {c.weight})</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
+          {allDiagnoses.length > 0 && (
+            <div>
+              <div className="mb-1 text-xs font-semibold text-[#eeb980]">Rozpoznania różnicowe</div>
+              <div className="flex flex-col gap-1">
+                {allDiagnoses.map(d => (
+                  <div
+                    key={d.name}
+                    className="flex items-center rounded bg-[#653828]/80 px-3 py-1 text-xs font-medium text-[#eeb980]"
+                  >
+                    <span>{d.name}</span>
+                    <span className="ml-2 opacity-80">(waga: {d.weight})</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
       {isLeafLevel && selectedNodes.length === 0 && (
         <>
           {suggestionsIfNoSelection.conclusions.length > 0 && (

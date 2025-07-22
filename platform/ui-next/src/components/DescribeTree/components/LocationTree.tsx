@@ -9,26 +9,40 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
   const [selectedNodes, setSelectedNodes] = useState<any[]>([]);
 
   function toggleSelect(node: any, parent: any) {
+    console.log('toggleSelect:', {
+      node: node.name,
+      uuid: node.uuid,
+      parent: parent.name,
+      parentUuid: parent.uuid,
+    });
+
     const exists = selectedNodes.find(
-      n => n.node.uuid === node.uuid && n.parentName === parent.name
+      n => n.node.uuid === node.uuid && n.parentUuid === parent.uuid
     );
     if (exists) {
       setSelectedNodes(prev =>
-        prev.filter(n => !(n.node.uuid === node.uuid && n.parentName === parent.name))
+        prev.filter(n => !(n.node.uuid === node.uuid && n.parentUuid === parent.uuid))
       );
     } else {
-      setSelectedNodes(prev => [...prev, { node, parentName: parent.name }]);
+      setSelectedNodes(prev => [...prev, { node, parentUuid: parent.uuid }]);
     }
   }
 
-  function mergeChildIntoTree(baseTree, parentName, childNode) {
+  function mergeChildIntoTree(baseTree, parentUuid, childNode, depth = 0) {
+    console.log(
+      ' '.repeat(depth * 2) +
+        `[depth ${depth}] SZUKAM parentUuid: ${parentUuid} w [${baseTree.map(n => n.name + ' (' + n.uuid + ')').join(', ')}]`
+    );
     return baseTree.map(node => {
-      if (node.name === parentName) {
+      if (node.uuid === parentUuid) {
+        console.log(
+          ' '.repeat(depth * 2) +
+            `[depth ${depth}] ==> ZNALAZŁEM parenta: ${node.name} (${node.uuid}), dodaję dziecko: ${childNode.name} (${childNode.uuid})`
+        );
         const existingChild = (node.children_lokalizacja || []).find(
           c => c.uuid === childNode.uuid
         );
         if (existingChild) return node;
-
         return {
           ...node,
           children_lokalizacja: [
@@ -42,29 +56,44 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
           ...node,
           children_lokalizacja: mergeChildIntoTree(
             node.children_lokalizacja,
-            parentName,
-            childNode
+            parentUuid,
+            childNode,
+            depth + 1
           ),
         };
       }
       return node;
     });
   }
+  function findNodeByUuid(tree, uuid) {
+    for (const node of tree) {
+      if (node.uuid === uuid) return node;
+      if (node.children_lokalizacja?.length) {
+        const res = findNodeByUuid(node.children_lokalizacja, uuid);
+        if (res) return res;
+      }
+    }
+    return null;
+  }
 
   function handleNextLevel() {
     let updatedTree = [...tree];
+    console.log('--- handleNextLevel ---');
 
-    selectedNodes.forEach(({ node, parentName }) => {
-      if (tree.find(t => t.name === node.name)) return;
+    selectedNodes.forEach(({ node, parentUuid }) => {
+      console.log('Trying to attach:', node.name, node.uuid, 'to parentUuid:', parentUuid);
+      if (tree.find(t => t.name === node.uuid)) return;
 
-      const existsInTree = tree.find(t => t.name === parentName);
+      const existsInTree = findNodeByUuid(updatedTree, parentUuid);
       if (existsInTree) {
-        updatedTree = mergeChildIntoTree(updatedTree, parentName, node);
+        updatedTree = mergeChildIntoTree(updatedTree, parentUuid, node);
       } else {
         updatedTree.push({ ...node, children_lokalizacja: [] });
       }
     });
-
+    console.log('updatedTree after handleNextLevel:', JSON.stringify(updatedTree, null, 2));
+    // console.log('handleNextLevel: selectedNodes', selectedNodes);
+    // console.log('handleNextLevel: pathStack', pathStack);
     const nextLevel = selectedNodes
       .flatMap(entry => ({
         parentNode: entry.node,
@@ -98,17 +127,16 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
 
   function handleFinish() {
     let updatedTree = [...tree];
-    selectedNodes.forEach(({ node, parentName }) => {
-      if (tree.find(t => t.name === node.name)) return;
-
-      const existsInTree = tree.find(t => t.name === parentName);
+    selectedNodes.forEach(({ node, parentUuid }) => {
+      if (findNodeByUuid(updatedTree, node.uuid)) return;
+      const existsInTree = findNodeByUuid(updatedTree, parentUuid);
       if (existsInTree) {
-        updatedTree = mergeChildIntoTree(updatedTree, parentName, node);
+        updatedTree = mergeChildIntoTree(updatedTree, parentUuid, node);
       } else {
         updatedTree.push({ ...node, children_lokalizacja: [] });
       }
     });
-
+    console.log('handleFinish: updatedTree', JSON.stringify(updatedTree, null, 2));
     onFinish(updatedTree);
   }
 
@@ -154,7 +182,7 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
           <div className="flex flex-col gap-3">
             {childNodes.map(child => {
               const selected = selectedNodes.find(
-                n => n.node.uuid === child.uuid && n.parentName === parentNode.name
+                n => n.node.uuid === child.uuid && n.parentUuid === parentNode.uuid
               );
               return (
                 <button

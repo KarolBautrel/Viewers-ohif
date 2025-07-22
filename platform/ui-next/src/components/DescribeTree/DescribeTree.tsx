@@ -3,7 +3,8 @@ import FeatureTree from './components/FeatureTree';
 import LocationTree from './components/LocationTree';
 import type { CechaNode } from './types';
 import { fetchFeatureTree, fetchLocalizationTree, fetchSymptoms } from '../../apiService/api';
-
+import SelectModeStep from './components/SelectModeStep';
+import { Step } from './consts';
 export default function DescribeTree({
   onSelect,
   onCancel,
@@ -19,9 +20,7 @@ export default function DescribeTree({
   referralData: string[];
   circumstancecData: string[];
 }) {
-  const [step, setStep] = useState<
-    'selectMode' | 'locations' | 'form' | 'features' | 'virtualLocation'
-  >('locations');
+  const [step, setStep] = useState<Step>(Step.Locations);
   const [featureData, setFeatureData] = useState<CechaNode[] | null>(null);
   const [locData, setLocData] = useState<any[] | null>(null);
   const [gatingsUuid, setGatingUuids] = useState<string[]>([]);
@@ -70,7 +69,7 @@ export default function DescribeTree({
         localization: currentMeasurement.description.localization,
         description: currentMeasurement.description.description,
       }));
-      setStep('selectMode');
+      setStep(Step.SelectMode);
     } else {
       fetchLocations();
     }
@@ -136,7 +135,7 @@ export default function DescribeTree({
 
       setFeatureData(data);
       setGatingUuids(extractGatingsUUID(data));
-      setStep('features');
+      setStep(Step.Features);
     } catch (e) {
       console.error(e);
       setError((e as Error).message || 'Nie udało się pobrać drzewa cech.');
@@ -154,7 +153,7 @@ export default function DescribeTree({
       const data = await fetchLocalizationTree();
       setLocData(data);
       setGatingUuids(extractGatingsUUID(data));
-      setStep(isVirtual ? 'virtualLocation' : 'locations');
+      setStep(isVirtual ? Step.VirtualLocation : Step.Locations);
     } catch (e) {
       console.error(e);
       setError((e as Error).message || 'Nie udało się pobrać lokalizacji.');
@@ -172,13 +171,15 @@ export default function DescribeTree({
   }
 
   function handleLocalizationDone(selectedPath: any) {
+    console.log('handleLocalizationDone: selectedPath', JSON.stringify(selectedPath, null, 2));
+
     const recon = findReconFromLocalization(
       selectedPath,
       currentMeasurement?.description?.recon_from_localization || []
     );
     setLocalizationRecon(recon);
     setDescribeResult(r => ({ ...r, localization: selectedPath }));
-    setStep('selectMode');
+    setStep(Step.SelectMode);
   }
 
   function handleVirtualLocalizationDone(selectedPath: any) {
@@ -187,7 +188,7 @@ export default function DescribeTree({
       ...r,
       localization: [...(r.localization || []).filter(l => l.ROI !== false), ...flaggedLocations],
     }));
-    setStep('selectMode');
+    setStep(Step.SelectMode);
   }
 
   function handleFeatureDone(descriptionList: any) {
@@ -195,7 +196,7 @@ export default function DescribeTree({
       ...r,
       description: descriptionList,
     }));
-    setStep('selectMode');
+    setStep(Step.SelectMode);
   }
   function mergeDescriptions(arr1 = [], arr2 = []) {
     console.log({ arr1, arr2 });
@@ -267,7 +268,7 @@ export default function DescribeTree({
             </button>
             <button
               className="rounded bg-[#14d6f8] py-2 font-bold text-black hover:bg-[#0db8d7]"
-              onClick={() => setStep('form')}
+              onClick={() => setStep(Step.Form)}
             >
               Opisuj
             </button>
@@ -324,7 +325,7 @@ export default function DescribeTree({
           <LocationTree
             data={locData}
             onDone={handleLocalizationDone}
-            onBack={() => setStep('selectMode')}
+            onBack={() => setStep(Step.SelectMode)}
             onFinish={handleLocalizationDone}
           />
         )}
@@ -333,7 +334,7 @@ export default function DescribeTree({
           <LocationTree
             data={locData}
             onDone={handleVirtualLocalizationDone}
-            onBack={() => setStep('selectMode')}
+            onBack={() => setStep(Step.SelectMode)}
             onFinish={handleVirtualLocalizationDone}
           />
         )}
@@ -367,7 +368,7 @@ export default function DescribeTree({
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => setStep('selectMode')}
+                onClick={() => setStep(Step.SelectMode)}
                 className="flex-1 rounded bg-[#23274a] py-2 text-white"
               >
                 Wyjdź
@@ -389,7 +390,7 @@ export default function DescribeTree({
           <FeatureTree
             data={featureData}
             onDone={handleFeatureDone}
-            onBack={() => setStep('selectMode')}
+            onBack={() => setStep(Step.SelectMode)}
             gatingUuids={gatingsUuid}
           />
         )}

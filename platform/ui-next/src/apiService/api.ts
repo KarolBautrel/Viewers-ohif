@@ -49,7 +49,7 @@ export async function fetchReferralOptions(): Promise<string[]> {
 }
 
 export async function fetchLocalizationTree(): Promise<any[]> {
-  const res = await fetch(`${API_URL}/api/neo/symptoms/by-name/loc/`);
+  const res = await fetch(`${API_URL}/api/neo/localizations/all`);
   const data = await res.json();
 
   if (!res.ok || !Array.isArray(data) || data.length === 0) {

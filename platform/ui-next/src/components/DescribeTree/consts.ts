@@ -1,2 +1,7 @@
-//export const API_URL = 'https://ohif.bbbit.io/app';
-export const API_URL = 'http://localhost:8001';
+export enum Step {
+  SelectMode = 'selectMode',
+  Locations = 'locations',
+  Form = 'form',
+  Features = 'features',
+  VirtualLocation = 'virtualLocation',
+}

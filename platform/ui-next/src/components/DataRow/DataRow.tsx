@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '../../components/Button/Button';
 import {
   DropdownMenu,
@@ -8,6 +8,7 @@ import {
 } from '../../components/DropdownMenu';
 import { Icons } from '../../components/Icons/Icons';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../../components/Tooltip/Tooltip';
+import { MeasurementDescriptionDetails } from '../DescribeTree/components/MeasurementDescriptionDetails';
 
 interface DataRowProps {
   key: string;
@@ -28,6 +29,7 @@ interface DataRowProps {
   onDescribe?: (uid: string, description: string) => void;
   measurementUID: string;
   measurementDescription: any;
+  title: string; // Dodałem bo był używany niżej, a nie był w propsach
 }
 
 const DataRow: React.FC<DataRowProps> = ({
@@ -55,13 +57,7 @@ const DataRow: React.FC<DataRowProps> = ({
   const isTitleLong = title?.length > 25;
   const rowRef = useRef<HTMLDivElement>(null);
 
-  const getDeepestName = node => {
-    if (node?.children_lokalizacja?.length > 0) {
-      return getDeepestName(node.children_lokalizacja[node.children_lokalizacja.length - 1]);
-    }
-    return node?.name || '';
-  };
-
+  // Akcje menu
   const handleAction = (action: string, e: React.MouseEvent) => {
     e.stopPropagation();
     switch (action) {
@@ -83,14 +79,13 @@ const DataRow: React.FC<DataRowProps> = ({
     }
   };
 
+  // Helpery do detali
   const decodeHTML = (html: string) => {
     const txt = document.createElement('textarea');
     txt.innerHTML = html;
     return txt.value;
   };
-  useEffect(() => {
-    console.log('!!!!', measurementDescription);
-  });
+
   const renderDetailText = (text: string, indent: number = 0) => {
     const indentation = '  '.repeat(indent);
     if (text === '') {
@@ -288,98 +283,9 @@ const DataRow: React.FC<DataRowProps> = ({
             </div>
           )}
 
+          {/* Tu jest JEDYNE miejsce na szczegóły opisu pomiaru */}
           <div className="ml-7 flex flex-col gap-4 px-2 py-1">
-            {measurementDescription?.finding?.name && (
-              <div className="flex flex-col gap-1">
-                <span className="text-secondary-foreground font-semibold">
-                  Objaw radiologiczny:
-                </span>
-                <span className="mt-1 w-fit rounded-2xl bg-[#14d6f8] px-3 py-1 text-sm font-bold text-black">
-                  {measurementDescription.finding.name}
-                </span>
-              </div>
-            )}
-
-            {Array.isArray(measurementDescription?.localization) &&
-              measurementDescription.localization.length > 0 && (
-                <div className="flex flex-col gap-1">
-                  <span className="text-secondary-foreground font-semibold">
-                    Lokalizacja pomiaru:
-                  </span>
-                  {measurementDescription.localization
-                    .filter(l => l.ROI !== false)
-                    .map((loc, idx) => (
-                      <span
-                        key={loc.uuid || loc.name + idx}
-                        className="mt-1 w-fit rounded-2xl bg-[#225BA4] px-3 py-1 text-sm font-medium text-white"
-                      >
-                        {getDeepestName(loc)}
-                      </span>
-                    ))}
-                  {measurementDescription.localization
-                    .filter(l => l.ROI === false)
-                    .map((loc, idx) => (
-                      <span
-                        key={loc.uuid || loc.name + idx}
-                        className="mt-1 w-fit rounded-2xl bg-[#62768b] px-3 py-1 text-sm font-medium text-white"
-                      >
-                        {getDeepestName(loc)} (wirtualna)
-                      </span>
-                    ))}
-                </div>
-              )}
-
-            {Array.isArray(measurementDescription?.description) &&
-              measurementDescription.description.filter(f => f.type === 'cecha').length > 0 && (
-                <div className="flex flex-col gap-1">
-                  <span className="text-secondary-foreground font-semibold">Cechy:</span>
-                  {measurementDescription.description
-                    .filter(feature => feature.type === 'cecha')
-                    .map((feature, idx) => (
-                      <span
-                        key={feature.uuid || feature.name + idx}
-                        className="mt-1 w-fit rounded-2xl bg-[#23274a] px-3 py-1 text-sm font-medium text-white"
-                      >
-                        {feature.name}
-                      </span>
-                    ))}
-                </div>
-              )}
-
-            {Array.isArray(measurementDescription?.description) &&
-              measurementDescription.description.filter(d => d.type === 'wnioski').length > 0 && (
-                <div className="flex flex-col gap-1">
-                  <span className="font-semibold text-[#ffdcb0]">Wnioski:</span>
-                  {measurementDescription.description
-                    .filter(d => d.type === 'wnioski')
-                    .map((diagnosis, idx) => (
-                      <span
-                        key={diagnosis.uuid || diagnosis.name + idx}
-                        className="mt-1 w-fit rounded-2xl bg-[#7d2424] px-3 py-1 text-sm font-medium text-[#ffdcb0]"
-                      >
-                        {diagnosis.name}
-                      </span>
-                    ))}
-                </div>
-              )}
-
-            {Array.isArray(measurementDescription?.description) &&
-              measurementDescription.description.filter(d => d.type === 'rozpoznanie_roznicowe')
-                .length > 0 && (
-                <div className="flex flex-col gap-1">
-                  <span className="font-semibold text-[#ffdcb0]">Rozpoznania:</span>
-                  {measurementDescription.description
-                    .filter(d => d.type === 'rozpoznanie_roznicowe')
-                    .map((diagnosis, idx) => (
-                      <span
-                        key={diagnosis.uuid || diagnosis.name + idx}
-                        className="mt-1 w-fit rounded-2xl bg-[#653828] px-3 py-1 text-sm font-medium text-[#ffdcb0]"
-                      >
-                        {diagnosis.name}
-                      </span>
-                    ))}
-                </div>
-              )}
+            <MeasurementDescriptionDetails description={measurementDescription} />
           </div>
         </>
       )}
