@@ -1,3 +1,6 @@
+
+import React from "react";
+
 function getLeafPill(node) {
   let first = node;
   let last = node;

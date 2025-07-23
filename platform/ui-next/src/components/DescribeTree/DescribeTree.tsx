@@ -214,7 +214,7 @@ export default function DescribeTree({
 
     return {
       features: merged.filter(d => d.type === NodeType.CHARACTERISTIC),
-      conclusions: merged.filter(d => d.type === NodeType.SUMMARY),
+      conclusions: merged.filter(d => d.type === NodeType.SUMMARIES),
       diagnoses: merged.filter(d => d.type === NodeType.RECOGNITIONS),
     };
   }

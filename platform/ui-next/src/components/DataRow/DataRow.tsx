@@ -29,7 +29,7 @@ interface DataRowProps {
   onDescribe?: (uid: string, description: string) => void;
   measurementUID: string;
   measurementDescription: any;
-  title: string; // Dodałem bo był używany niżej, a nie był w propsach
+  title: string;
 }
 
 const DataRow: React.FC<DataRowProps> = ({
@@ -73,13 +73,9 @@ const DataRow: React.FC<DataRowProps> = ({
       case 'Color':
         onColor();
         break;
-      case 'Describe':
-        if (onDescribe) onDescribe(measurementUID, '');
-        break;
     }
   };
 
-  // Helpery do detali
   const decodeHTML = (html: string) => {
     const txt = document.createElement('textarea');
     txt.innerHTML = html;
@@ -221,6 +217,21 @@ const DataRow: React.FC<DataRowProps> = ({
           >
             {isVisible ? <Icons.Hide className="h-6 w-6" /> : <Icons.Show className="h-6 w-6" />}
           </Button>
+          {onDescribe && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="flex items-center gap-1 px-2"
+              aria-label="Describe"
+              onClick={e => {
+                e.stopPropagation();
+                onDescribe(measurementUID, '');
+              }}
+            >
+              <Icons.Info className="h-5 w-5" />
+              <span className="text-sm font-medium">Describe</span>
+            </Button>
+          )}
           {isLocked && !disableEditing && <Icons.Lock className="text-muted-foreground h-6 w-6" />}
           {disableEditing && <div className="h-6 w-6"></div>}
           {!disableEditing && (
@@ -258,10 +269,6 @@ const DataRow: React.FC<DataRowProps> = ({
                   <Icons.Lock className="text-foreground" />
                   <span className="pl-2">{isLocked ? 'Unlock' : 'Lock'}</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={e => handleAction('Describe', e)}>
-                  <Icons.Info className="text-foreground" />
-                  <span className="pl-2">Describe</span>
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           )}
@@ -283,7 +290,6 @@ const DataRow: React.FC<DataRowProps> = ({
             </div>
           )}
 
-          {/* Tu jest JEDYNE miejsce na szczegóły opisu pomiaru */}
           <div className="ml-7 flex flex-col gap-4 px-2 py-1">
             <MeasurementDescriptionDetails description={measurementDescription} />
           </div>

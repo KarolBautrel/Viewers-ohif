@@ -1,4 +1,5 @@
 import React from 'react';
+import AutocompleteSingleSelect from '../../AutocompleteSingleSelect/AutocompleteSingleSelect';
 
 export default function FormStep({
   symptomOptions,
@@ -18,22 +19,12 @@ export default function FormStep({
         <span className="mb-0.5 flex flex-row items-center text-[14px] font-semibold text-[#C9C9C9]">
           Wybierz objaw<span className="ml-1 text-[#F03E3E]">*</span>
         </span>
-        <select
-          className="h-10 w-full rounded border border-[#225BA4] bg-[#0B0F2B] px-3 text-[16px] text-white outline-none"
+        <AutocompleteSingleSelect
+          options={symptomOptions}
           value={findingName}
-          onChange={e => setFindingName(e.target.value)}
-          required
-        >
-          <option value="">Wybierz objaw</option>
-          {symptomOptions.map(name => (
-            <option
-              key={name}
-              value={name}
-            >
-              {name}
-            </option>
-          ))}
-        </select>
+          onChange={setFindingName}
+          placeholder="Wpisz lub wybierz objaw"
+        />
       </label>
       <div className="flex gap-2">
         <button
