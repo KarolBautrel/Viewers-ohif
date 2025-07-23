@@ -25,13 +25,13 @@ export default function PanelMeasurement({
   const measurementsPanelRef = useRef(null);
 
   const [referralData, setReferralData] = useState<string[]>([]);
-  const [circumstancesData, setCircumstancesData] = useState<string[]>([]);
+  const [circumstancesData, setCircumstancesData] = useState<Record<string,string>[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [showJSONModal, setShowJSONModal] = useState(false);
 
   const [describeMode, setDescribeMode] = useState<{ uid: string } | null>(null);
   const [userHasSelected, setUserHasSelected] = useState(false);
-  const [studyUID, setStudyUID] = useState<string | null>(null);
+  const [risId, setRisId] = useState<string | null>(null);
 
   const { measurementService } = servicesManager.services;
   const displayMeasurements = useMeasurements(servicesManager, {
@@ -48,15 +48,18 @@ export default function PanelMeasurement({
     [measurementService]
   );
 
-  const { sendMessage } = useBroadcastChannelSender(
-    studyUID ? `radiology-channel-${studyUID}` : 'radiology-channel-default',
-    handleWsMessage
-  );
+
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
-    const uid = queryParams.get('StudyInstanceUIDs');
-    setStudyUID(uid);
+    const uid = queryParams.get('risID');
+
+    setRisId(uid);
   }, []);
+
+    const { sendMessage } = useBroadcastChannelSender(
+    risId ? `radiology-channel-${risId}` : 'radiology-channel-default',
+    handleWsMessage
+  );
 
   const handleRaportJson = () => {
     setShowJSONModal(true);

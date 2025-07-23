@@ -10,6 +10,7 @@ export enum NodeType {
   SYMPTOM = 'objaw_radiologiczny',
   CHARACTERISTIC = 'cecha',
   SUMMARIES = 'wnioski',
+  SUMMARY= 'wniosek',
   RECOGNITIONS = 'rozpoznanie_roznicowe',
   MEASUREMENTS_DATA = 'dane_z_pomiaru',
   LOCALIZATION = 'lokalizacja',

@@ -1,5 +1,3 @@
-import React, { useEffect } from 'react';
-
 function getLeafPill(node) {
   let first = node;
   let last = node;
@@ -11,6 +9,14 @@ function getLeafPill(node) {
 
 export function MeasurementDescriptionDetails({ description }) {
   if (!description) return null;
+
+  const features =
+    Array.isArray(description.description?.features) ? description.description.features : [];
+  const conclusions =
+    Array.isArray(description.description?.conclusions) ? description.description.conclusions : [];
+  const diagnoses =
+    Array.isArray(description.description?.diagnoses) ? description.description.diagnoses : [];
+
   return (
     <div className="flex flex-col gap-4">
       {/* Objaw */}
@@ -23,11 +29,9 @@ export function MeasurementDescriptionDetails({ description }) {
         </div>
       )}
 
-      {/* Lokalizacje */}
       {Array.isArray(description.localization) && description.localization.length > 0 && (
         <div className="flex flex-col gap-1">
           <span className="text-secondary-foreground font-semibold">Lokalizacja pomiaru:</span>
-          {/* ROI (standard) */}
           <div className="mt-2 flex flex-wrap gap-2">
             {description.localization
               .filter(l => l.ROI !== false)
@@ -44,7 +48,6 @@ export function MeasurementDescriptionDetails({ description }) {
                   </span>
                 );
               })}
-            {/* Poza ROI */}
             {description.localization
               .filter(l => l.ROI === false)
               .map((loc, idx) => {
@@ -64,59 +67,47 @@ export function MeasurementDescriptionDetails({ description }) {
         </div>
       )}
 
-      {/* Cechy */}
-      {Array.isArray(description.description) &&
-        description.description.filter(f => f.type === 'cecha').length > 0 && (
-          <div className="flex flex-col gap-1">
-            <span className="text-secondary-foreground font-semibold">Cechy:</span>
-            {description.description
-              .filter(feature => feature.type === 'cecha')
-              .map((feature, idx) => (
-                <span
-                  key={feature.uuid || feature.name + idx}
-                  className="mt-1 w-fit rounded-2xl bg-[#23274a] px-3 py-1 text-sm font-medium text-white"
-                >
-                  {feature.name}
-                </span>
-              ))}
-          </div>
-        )}
+      {features.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <span className="text-secondary-foreground font-semibold">Cechy:</span>
+          {features.map((feature, idx) => (
+            <span
+              key={feature.uuid || feature.name + idx}
+              className="mt-1 w-fit rounded-2xl bg-[#23274a] px-3 py-1 text-sm font-medium text-white"
+            >
+              {feature.name}
+            </span>
+          ))}
+        </div>
+      )}
 
-      {/* Wnioski */}
-      {Array.isArray(description.description) &&
-        description.description.filter(d => d.type === 'wnioski').length > 0 && (
-          <div className="flex flex-col gap-1">
-            <span className="font-semibold text-[#ffdcb0]">Wnioski:</span>
-            {description.description
-              .filter(d => d.type === 'wnioski')
-              .map((diagnosis, idx) => (
-                <span
-                  key={diagnosis.uuid || diagnosis.name + idx}
-                  className="mt-1 w-fit rounded-2xl bg-[#7d2424] px-3 py-1 text-sm font-medium text-[#ffdcb0]"
-                >
-                  {diagnosis.name}
-                </span>
-              ))}
-          </div>
-        )}
+      {conclusions.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <span className="font-semibold text-[#ffdcb0]">Wnioski:</span>
+          {conclusions.map((conclusion, idx) => (
+            <span
+              key={conclusion.uuid || conclusion.name + idx}
+              className="mt-1 w-fit rounded-2xl bg-[#7d2424] px-3 py-1 text-sm font-medium text-[#ffdcb0]"
+            >
+              {conclusion.name}
+            </span>
+          ))}
+        </div>
+      )}
 
-      {/* Rozpoznania */}
-      {Array.isArray(description.description) &&
-        description.description.filter(d => d.type === 'rozpoznanie_roznicowe').length > 0 && (
-          <div className="flex flex-col gap-1">
-            <span className="font-semibold text-[#ffdcb0]">Rozpoznania:</span>
-            {description.description
-              .filter(d => d.type === 'rozpoznanie_roznicowe')
-              .map((diagnosis, idx) => (
-                <span
-                  key={diagnosis.uuid || diagnosis.name + idx}
-                  className="mt-1 w-fit rounded-2xl bg-[#653828] px-3 py-1 text-sm font-medium text-[#ffdcb0]"
-                >
-                  {diagnosis.name}
-                </span>
-              ))}
-          </div>
-        )}
+      {diagnoses.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <span className="font-semibold text-[#ffdcb0]">Rozpoznania:</span>
+          {diagnoses.map((diagnosis, idx) => (
+            <span
+              key={diagnosis.uuid || diagnosis.name + idx}
+              className="mt-1 w-fit rounded-2xl bg-[#653828] px-3 py-1 text-sm font-medium text-[#ffdcb0]"
+            >
+              {diagnosis.name}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

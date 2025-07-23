@@ -61,3 +61,11 @@ export interface CechaNode {
   sugeruje_objaw?: Objaw[];
   skierowanie?: Skierowanie;
 }
+
+
+export type DescriptionItem = {
+  uuid?: string;
+  name: string;
+  type: NodeType
+  weight?: number;
+};

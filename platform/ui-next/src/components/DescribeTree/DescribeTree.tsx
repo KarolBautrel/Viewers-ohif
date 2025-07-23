@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import FeatureTree from './components/FeatureTree';
 import LocationTree from './components/LocationTree';
-import type { CechaNode } from './types';
+import type { CechaNode, DescriptionItem } from './types';
 import { fetchFeatureTree, fetchLocalizationTree, fetchSymptoms } from '../../apiService/api';
 import SelectModeStep from './components/SelectModeStep';
 import FormStep from './components/FormStep';
-import { Step } from './enums';
+import { NodeType, Step } from './enums';
 
 export default function DescribeTree({
   onSelect,
@@ -20,7 +20,7 @@ export default function DescribeTree({
   measurements: any[];
   uid: string;
   referralData: string[];
-  circumstancecData: string[];
+  circumstancecData: Record<string, string>[];
 }) {
   const [step, setStep] = useState<Step>(Step.Locations);
   const [featureData, setFeatureData] = useState<CechaNode[] | null>(null);
@@ -200,16 +200,25 @@ export default function DescribeTree({
     }));
     setStep(Step.SelectMode);
   }
-  function mergeDescriptions(arr1 = [], arr2 = []) {
-    console.log({ arr1, arr2 });
-    const byUuid = {};
-    for (const d of [...arr1, ...arr2]) {
+  function mergeDescriptions(
+    { features = [], conclusions = [], diagnoses = [] } = {},
+    virtualDescriptions = []
+  ) {
+    const byUuid: Record<string, DescriptionItem>  = {};
+    for (const d of [...features, ...conclusions, ...diagnoses, ...virtualDescriptions]) {
       const key = d.uuid || d.name;
       if (!byUuid[key]) byUuid[key] = { ...d, weight: d.weight || 1 };
       else byUuid[key].weight += d.weight || 1;
     }
-    return Object.values(byUuid);
+    const merged = Object.values(byUuid);
+
+    return {
+      features: merged.filter(d => d.type === NodeType.CHARACTERISTIC),
+      conclusions: merged.filter(d => d.type === NodeType.SUMMARY),
+      diagnoses: merged.filter(d => d.type === NodeType.RECOGNITIONS),
+    };
   }
+
   const isReadyToConfirm =
     Array.isArray(describeResult.localization) &&
     describeResult.localization.length > 0 &&
@@ -264,16 +273,16 @@ export default function DescribeTree({
               onSelect({
                 localization: describeResult.localization,
                 description: mergeDescriptions(
-                  [
-                    ...(describeResult.description?.features || []),
-                    ...(describeResult.description?.conclusions || []),
-                    ...(describeResult.description?.diagnoses || []),
-                  ],
+                  {
+                    features: describeResult.description?.features || [],
+                    conclusions: describeResult.description?.conclusions || [],
+                    diagnoses: describeResult.description?.diagnoses || [],
+                  },
                   localizationRecon
                 ),
                 circumstances: describeResult.circumstances,
                 referral: referralData,
-                finding: describeResult.description?.finding,
+                finding: describeResult.description?.finding || [],
               });
             }}
             onCancel={onCancel}
