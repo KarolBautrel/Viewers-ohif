@@ -14,6 +14,8 @@ export default function DescribeTree({
   uid,
   referralData,
   circumstancecData,
+  patientAge,
+  patientGender
 }: {
   onSelect: (desc: Record<string, any>) => void;
   onCancel: () => void;
@@ -21,6 +23,8 @@ export default function DescribeTree({
   uid: string;
   referralData: string[];
   circumstancecData: Record<string, string>[];
+  patientAge: number;
+  patientGender:string
 }) {
   const [step, setStep] = useState<Step>(Step.Locations);
   const [featureData, setFeatureData] = useState<CechaNode[] | null>(null);
@@ -133,6 +137,8 @@ export default function DescribeTree({
         size: displayValue || size,
         unitDimension,
         referralData,
+        patientAge,
+        patientGender
       });
 
       setFeatureData(data);
