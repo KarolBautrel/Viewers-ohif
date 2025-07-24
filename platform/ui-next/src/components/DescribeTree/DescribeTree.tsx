@@ -128,6 +128,8 @@ export default function DescribeTree({
     return (gatingData?.[0]?.bramkowania || []).map(b => b.from_id);
   };
 
+  ///TODO: Zrobic serwis odpowiedzialny za api calle i tam przeniesc logike
+  /// Na surowo jest tutaj na potrzeby POC, w nastepnym releasie juz przeniose
   async function fetchFeatures() {
     setLoading(true);
     setError(null);
