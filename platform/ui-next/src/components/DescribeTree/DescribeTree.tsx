@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import CircumstancesTree from './components/CircumstancesTree';
 import FeatureTree from './components/FeatureTree';
 import LocationTree from './components/LocationTree';
-import type { CechaNode } from './types';
-import { API_URL } from './consts';
-export const OBJAW_RADIOLOGICZNY = [
-  // 'część lita częściowo litego guzka miąższu płuca',
-  'guzek miąższu płuca',
-  'mnogie guzki płuca',
-  // 'częściowo lity guzek miąższu płuca',
-];
+import type { CechaNode, DescriptionItem } from './types';
+import { fetchFeatureTree, fetchLocalizationTree, fetchSymptoms } from '../../apiService/api';
+import SelectModeStep from './components/SelectModeStep';
+import FormStep from './components/FormStep';
+import { NodeType, Step } from './enums';
 
 export default function DescribeTree({
   onSelect,
@@ -17,26 +13,30 @@ export default function DescribeTree({
   measurements,
   uid,
   referralData,
+  circumstancecData,
+  patientAge,
+  patientGender
 }: {
   onSelect: (desc: Record<string, any>) => void;
   onCancel: () => void;
   measurements: any[];
   uid: string;
   referralData: string[];
-  circumstancecData: string[];
+  circumstancecData: Record<string, string>[];
+  patientAge: number;
+  patientGender:string
 }) {
-  const [step, setStep] = useState<'circumstances' | 'form' | 'features' | 'locations'>('form');
+  const [step, setStep] = useState<Step>(Step.Locations);
   const [featureData, setFeatureData] = useState<CechaNode[] | null>(null);
   const [locData, setLocData] = useState<any[] | null>(null);
-  const [describeResult, setDescribeResult] = useState<{
-    circumstances: any[] | null;
-    localization: Record<any, any> | null;
-    description: Record<any, any> | null;
-  }>({
-    circumstances: null,
-    localization: null,
+  const [gatingsUuid, setGatingUuids] = useState<string[]>([]);
+  const [describeResult, setDescribeResult] = useState({
+    circumstances: circumstancecData || null,
+    localization: [],
     description: null,
   });
+  const [symptomOptions, setSymptomOptions] = useState<string[]>([]);
+  const [localizationRecon, setLocalizationRecon] = useState<any[]>([]);
 
   const [findingName, setFindingName] = useState<string>('');
   const [size, setSize] = useState<string>('');
@@ -44,179 +44,254 @@ export default function DescribeTree({
   const [error, setError] = useState<string | null>(null);
 
   const currentMeasurement = measurements?.find(m => m.uid === uid);
+  const hasLocalization = currentMeasurement?.description?.localization?.length > 0;
+
+  useEffect(() => {
+    async function fetchSymptomsOptions() {
+      try {
+        const data = await fetchSymptoms();
+
+        if (Array.isArray(data)) {
+          const names = data
+            .map(symptom => symptom.name)
+            .filter(Boolean)
+            .sort((a, b) => a.localeCompare(b, 'pl'));
+
+          setSymptomOptions(names);
+        } else {
+          throw new Error('Niepoprawna odpowiedź z API.');
+        }
+      } catch (e) {
+        console.error('Błąd pobierania objawów:', e);
+      }
+    }
+
+    fetchSymptomsOptions();
+  }, []);
+  useEffect(() => {
+    if (hasLocalization) {
+      setDescribeResult(r => ({
+        ...r,
+        localization: currentMeasurement.description.localization,
+        description: currentMeasurement.description.description,
+      }));
+      setStep(Step.SelectMode);
+    } else {
+      fetchLocations();
+    }
+  }, []);
+
+  function findReconFromLocalization(selectedLoc, reconFromLocalization = []) {
+    if (!selectedLoc || !reconFromLocalization) return [];
+    const selectedUuids = Array.isArray(selectedLoc)
+      ? selectedLoc.map(l => l.uuid)
+      : [selectedLoc.uuid];
+    let result = [];
+    for (const loc of reconFromLocalization) {
+      if (selectedUuids.includes(loc.uuid)) {
+        for (const meta of loc.children_dane_z_metadanych || []) {
+          for (const recon of meta.children_rozpoznanie_roznicowe || []) {
+            result.push({
+              ...recon,
+              metaName: meta.name,
+              source: 'localization',
+            });
+          }
+        }
+      }
+    }
+    return result;
+  }
 
   let displayValue = '';
   let displayUnit = '';
+  let unitDimension = '';
   if (currentMeasurement) {
     if (currentMeasurement.toolName === 'Length') {
-      const dataKey = Object.keys(currentMeasurement.data || {})[0];
-      const d = dataKey && currentMeasurement.data[dataKey];
-      if (d && typeof d.length === 'number') {
+      const d = currentMeasurement.data?.[Object.keys(currentMeasurement.data)[0]];
+      if (d?.length) {
         displayValue = d.length.toFixed(1);
         displayUnit = 'mm';
+        unitDimension = null;
       }
-    } else if (
-      currentMeasurement.toolName === 'CircleROI' ||
-      currentMeasurement.toolName === 'PlanarFreehandROI'
-    ) {
-      const dataKey = Object.keys(currentMeasurement.data || {})[0];
-      const d = dataKey && currentMeasurement.data[dataKey];
-      if (d && typeof d.area === 'number') {
+    } else if (['CircleROI', 'PlanarFreehandROI'].includes(currentMeasurement.toolName)) {
+      const d = currentMeasurement.data?.[Object.keys(currentMeasurement.data)[0]];
+      if (d?.area) {
         displayValue = d.area.toFixed(1);
         displayUnit = 'mm²';
+        unitDimension = 'square';
       }
     }
   }
 
-  function handleCircumstancesDone(selectedCircumstances: any[]) {
-    setDescribeResult(r => ({ ...r, circumstances: selectedCircumstances }));
-    setStep('form');
-  }
+  const extractGatingsUUID = gatingData => {
+    return (gatingData?.[0]?.bramkowania || []).map(b => b.from_id);
+  };
 
-  ///TODO: Zrobic serwis odpowiedzialny za api calle i tam przeniesc logike
-  /// Na surowo jest tutaj na potrzeby POC, w nastepnym releasie juz przeniose
   async function fetchFeatures() {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({
-        finding_name: findingName,
+      const data = await fetchFeatureTree({
+        findingName,
         size: displayValue || size,
-      }).toString();
-
-      const res = await fetch(`${API_URL}/api/neo/objawy/by-name/cechy/?${params}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ referral_data: referralData }),
+        unitDimension,
+        referralData,
+        patientAge,
+        patientGender
       });
 
-      if (!res.ok) throw new Error('Błąd pobierania cech');
-      const data = await res.json();
       setFeatureData(data);
-      setStep('features');
+      setGatingUuids(extractGatingsUUID(data));
+      setStep(Step.Features);
     } catch (e) {
-      setError('Nie udało się pobrać drzewa cech.');
+      console.error(e);
+      setError((e as Error).message || 'Nie udało się pobrać drzewa cech.');
     } finally {
       setLoading(false);
     }
   }
 
-  async function fetchLocations() {
+  async function fetchLocations(isVirtual = false) {
     setLoading(true);
     setError(null);
+    setDescribeResult(r => ({ ...r, description: null }));
+
     try {
-      const res = await fetch(`${API_URL}/api/neo/objawy/by-name/lokalizacja/`, { method: 'GET' });
-      if (!res.ok) throw new Error('Błąd pobierania lokalizacji');
-      const data = await res.json();
+      const data = await fetchLocalizationTree();
       setLocData(data);
-      setStep('locations');
+      setGatingUuids(extractGatingsUUID(data));
+      setStep(isVirtual ? Step.VirtualLocation : Step.Locations);
     } catch (e) {
-      setError('Nie udało się pobrać drzewa lokalizacji.');
+      console.error(e);
+      setError((e as Error).message || 'Nie udało się pobrać lokalizacji.');
     } finally {
       setLoading(false);
     }
   }
 
-  function resetAll() {
-    setStep('form');
-    setFeatureData(null);
-    setLocData(null);
-    setFindingName('');
-    setSize('');
-    setDescribeResult({ circumstances: null, localization: null, description: null });
-    setError(null);
+  function applyROIFalseRecursive(node) {
+    return {
+      ...node,
+      ROI: false,
+      children_lokalizacja: (node.children_lokalizacja || []).map(applyROIFalseRecursive),
+    };
   }
 
-  function handleFeatureDone(descriptionList: Record<any, any>) {
-    setDescribeResult(r => {
-      const full = { ...r, description: descriptionList };
-      return full;
-    });
-    fetchLocations();
-  }
+  function handleLocalizationDone(selectedPath: any) {
+    console.log('handleLocalizationDone: selectedPath', JSON.stringify(selectedPath, null, 2));
 
-  function handleLocalizationDone(selectedPath: Record<any, any>) {
+    const recon = findReconFromLocalization(
+      selectedPath,
+      currentMeasurement?.description?.recon_from_localization || []
+    );
+    setLocalizationRecon(recon);
     setDescribeResult(r => ({ ...r, localization: selectedPath }));
-    const finalDes = { ...describeResult, localization: selectedPath };
-    onSelect(finalDes);
+    setStep(Step.SelectMode);
   }
+
+  function handleVirtualLocalizationDone(selectedPath: any) {
+    const flaggedLocations = selectedPath.map(applyROIFalseRecursive);
+    setDescribeResult(r => ({
+      ...r,
+      localization: [...(r.localization || []).filter(l => l.ROI !== false), ...flaggedLocations],
+    }));
+    setStep(Step.SelectMode);
+  }
+
+  function handleFeatureDone(descriptionList: any) {
+    setDescribeResult(r => ({
+      ...r,
+      description: descriptionList,
+    }));
+    setStep(Step.SelectMode);
+  }
+  function mergeDescriptions(
+    { features = [], conclusions = [], diagnoses = [] } = {},
+    virtualDescriptions = []
+  ) {
+    const byUuid: Record<string, DescriptionItem>  = {};
+    for (const d of [...features, ...conclusions, ...diagnoses, ...virtualDescriptions]) {
+      const key = d.uuid || d.name;
+      if (!byUuid[key]) byUuid[key] = { ...d, weight: d.weight || 1 };
+      else byUuid[key].weight += d.weight || 1;
+    }
+    const merged = Object.values(byUuid);
+
+    return {
+      features: merged.filter(d => d.type === NodeType.CHARACTERISTIC),
+      conclusions: merged.filter(d => d.type === NodeType.SUMMARIES),
+      diagnoses: merged.filter(d => d.type === NodeType.RECOGNITIONS),
+    };
+  }
+
+  const isReadyToConfirm =
+    Array.isArray(describeResult.localization) &&
+    describeResult.localization.length > 0 &&
+    describeResult.description !== null;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-start bg-[#090C2A] py-6">
-      <div className="relative flex max-h-screen w-[342px] flex-col items-start gap-2 overflow-y-auto rounded-lg bg-[#090C2A] px-4 pt-4 pb-6 shadow-[0px_1px_2px_rgba(0,0,0,0.10),0px_1px_3px_rgba(0,0,0,0.05)]">
-        <div className="mb-6 flex w-[310px] flex-row items-center justify-between">
-          <span className="font-roboto text-[20px] font-semibold text-[#C9C9C9]">Opisz pomiar</span>
+      <div className="relative flex max-h-screen w-[342px] flex-col gap-4 rounded-lg bg-[#090C2A] p-4 shadow">
+        {loading && (
+          <div className="pointer-events-auto absolute inset-0 z-50 flex items-center justify-center bg-[#090C2A]/80 backdrop-blur-sm">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-white border-t-transparent" />
+          </div>
+        )}
+
+        {error && !loading && (
+          <div className="absolute inset-0 z-40 flex items-center justify-center bg-[#090C2A]/90 px-4 text-center">
+            <div className="px- rounded bg-[#090C2A] py-3 text-sm text-white shadow-lg">
+              <p className="mb-2 font-semibold">Wystąpił błąd:</p>
+              <p>Nie udalo sie pobrac danych do drzewa.</p>
+              <button
+                onClick={() => {
+                  setError(null);
+                  onCancel();
+                }}
+                className="mt-4 rounded bg-[#225BA4] px-3 py-1 text-white hover:bg-[#2b6cb0]"
+              >
+                Wróć
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between">
+          <span className="text-xl font-semibold text-[#C9C9C9]">Opisz pomiar</span>
           <button
             onClick={onCancel}
-            className="flex h-8 w-8 items-center justify-center rounded text-[#C9C9C9] hover:bg-[#23274a]"
-            aria-label="Zamknij"
+            className="h-8 w-8 rounded text-white hover:bg-[#23274a]"
           >
             ✕
           </button>
         </div>
 
-        <div className="mb-2 flex w-[310px] justify-center">
-          <span className="font-roboto rounded-2xl bg-[rgba(134,142,150,0.15)] px-3 py-1 text-[16px] text-white">
-            {displayValue ? `${displayValue} ${displayUnit}` : '—'}
-          </span>
-        </div>
-
-        {step === 'circumstances' && (
-          <CircumstancesTree
-            onDone={handleCircumstancesDone}
-            onBack={onCancel}
-          />
-        )}
-
-        {step === 'form' && (
-          <form
-            className="flex w-[310px] flex-col gap-4"
-            onSubmit={e => e.preventDefault()}
-          >
-            <div className="flex w-full flex-row items-center gap-2">
-              <span className="font-roboto text-[14px] font-semibold text-[#C9C9C9]">
-                Objaw radiologiczny
-              </span>
-            </div>
-            <label className="flex w-full flex-col gap-1">
-              <span className="font-roboto mb-0.5 flex flex-row items-center text-[14px] font-semibold text-[#C9C9C9]">
-                Wybierz objaw
-                <span className="ml-1 text-[#F03E3E]">*</span>
-              </span>
-              <select
-                className="font-roboto h-10 w-full rounded border border-[#225BA4] bg-[#0B0F2B] px-3 text-[16px] text-white outline-none"
-                value={findingName}
-                onChange={e => setFindingName(e.target.value)}
-                required
-              >
-                <option value="">Pick</option>
-                {OBJAW_RADIOLOGICZNY.map(opt => (
-                  <option
-                    key={opt}
-                    value={opt}
-                  >
-                    {opt}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              type="button"
-              className="mt-2 h-10 w-full rounded bg-[#348CFD] px-4 py-2 font-semibold text-white transition hover:bg-[#225BA4]"
-              onClick={fetchFeatures}
-              disabled={!findingName || loading}
-            >
-              {loading ? '...' : 'Pobierz cechy'}
-            </button>
-            {error && <span className="text-sm text-red-400">{error}</span>}
-          </form>
-        )}
-
-        {step === 'features' && featureData && (
-          <FeatureTree
-            data={featureData}
-            onDone={handleFeatureDone}
-            onBack={() => setStep('form')}
+        {step === 'selectMode' && (
+          <SelectModeStep
+            describeResult={describeResult}
+            isReadyToConfirm={isReadyToConfirm}
+            onEditLocalization={() => fetchLocations()}
+            onAddVirtualLocation={() => fetchLocations(true)}
+            onDescribe={() => setStep(Step.Form)}
+            onConfirm={() => {
+              if (!isReadyToConfirm) return;
+              onSelect({
+                localization: describeResult.localization,
+                description: mergeDescriptions(
+                  {
+                    features: describeResult.description?.features || [],
+                    conclusions: describeResult.description?.conclusions || [],
+                    diagnoses: describeResult.description?.diagnoses || [],
+                  },
+                  localizationRecon
+                ),
+                circumstances: describeResult.circumstances,
+                referral: referralData,
+                finding: describeResult.description?.finding || [],
+              });
+            }}
+            onCancel={onCancel}
           />
         )}
 
@@ -224,7 +299,38 @@ export default function DescribeTree({
           <LocationTree
             data={locData}
             onDone={handleLocalizationDone}
-            onBack={() => setStep('features')}
+            onBack={() => setStep(Step.SelectMode)}
+            onFinish={handleLocalizationDone}
+          />
+        )}
+
+        {step === 'virtualLocation' && locData && (
+          <LocationTree
+            data={locData}
+            onDone={handleVirtualLocalizationDone}
+            onBack={() => setStep(Step.SelectMode)}
+            onFinish={handleVirtualLocalizationDone}
+          />
+        )}
+
+        {step === 'form' && (
+          <FormStep
+            symptomOptions={symptomOptions}
+            findingName={findingName}
+            setFindingName={setFindingName}
+            loading={loading}
+            error={error}
+            onBack={() => setStep(Step.SelectMode)}
+            onFetchFeatures={fetchFeatures}
+          />
+        )}
+
+        {step === 'features' && featureData && (
+          <FeatureTree
+            data={featureData}
+            onDone={handleFeatureDone}
+            onBack={() => setStep(Step.SelectMode)}
+            gatingUuids={gatingsUuid}
           />
         )}
       </div>

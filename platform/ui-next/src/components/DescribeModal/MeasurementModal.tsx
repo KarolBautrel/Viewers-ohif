@@ -33,6 +33,7 @@ const MeasurementModal: React.FC<MeasurementModalProps> = ({ isOpen, onClose, da
                 <X
                   size={22}
                   className="text-gray-400 hover:text-gray-200"
+                  onClick={onClose}
                 />
               </button>
             </Dialog.Close>
