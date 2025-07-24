@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '../../components/Button/Button';
 import {
   DropdownMenu,
@@ -8,6 +8,7 @@ import {
 } from '../../components/DropdownMenu';
 import { Icons } from '../../components/Icons/Icons';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../../components/Tooltip/Tooltip';
+import { MeasurementDescriptionDetails } from '../DescribeTree/components/MeasurementDescriptionDetails';
 
 interface DataRowProps {
   key: string;
@@ -21,7 +22,6 @@ interface DataRowProps {
   onToggleVisibility: () => void;
   isLocked: boolean;
   onToggleLocked: () => void;
-  title: string;
   onRename: () => void;
   onDelete: () => void;
   colorHex?: string;
@@ -29,6 +29,7 @@ interface DataRowProps {
   onDescribe?: (uid: string, description: string) => void;
   measurementUID: string;
   measurementDescription: any;
+  title: string;
 }
 
 const DataRow: React.FC<DataRowProps> = ({
@@ -52,9 +53,11 @@ const DataRow: React.FC<DataRowProps> = ({
   measurementDescription,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const isTitleLong = title?.length > 25;
   const rowRef = useRef<HTMLDivElement>(null);
 
+  // Akcje menu
   const handleAction = (action: string, e: React.MouseEvent) => {
     e.stopPropagation();
     switch (action) {
@@ -69,9 +72,6 @@ const DataRow: React.FC<DataRowProps> = ({
         break;
       case 'Color':
         onColor();
-        break;
-      case 'Describe':
-        if (onDescribe) onDescribe(measurementUID, '');
         break;
     }
   };
@@ -107,7 +107,6 @@ const DataRow: React.FC<DataRowProps> = ({
   const renderDetails = (details: string[]) => {
     const visibleLines = details.slice(0, 4);
     const hiddenLines = details.slice(4);
-
     return (
       <Tooltip>
         <TooltipTrigger asChild>
@@ -146,22 +145,16 @@ const DataRow: React.FC<DataRowProps> = ({
       className={`flex flex-col ${isVisible ? '' : 'opacity-60'}`}
     >
       <div
-        className={`flex items-center ${
-          isSelected ? 'bg-popover' : 'bg-muted'
-        } group relative cursor-pointer`}
+        className={`flex items-center ${isSelected ? 'bg-popover' : 'bg-muted'} group relative cursor-pointer`}
         onClick={onSelect}
         data-cy="data-row"
       >
         <div className="bg-primary/20 pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100"></div>
-
         <div
-          className={`flex h-7 max-h-7 w-7 flex-shrink-0 items-center justify-center rounded-l border-r border-black text-base ${
-            isSelected ? 'bg-highlight text-black' : 'bg-muted text-muted-foreground'
-          } overflow-hidden`}
+          className={`flex h-7 max-h-7 w-7 flex-shrink-0 items-center justify-center rounded-l border-r border-black text-base ${isSelected ? 'bg-highlight text-black' : 'bg-muted text-muted-foreground'} overflow-hidden`}
         >
           {number}
         </div>
-
         {colorHex && (
           <div className="flex h-7 w-5 items-center justify-center">
             <span
@@ -170,15 +163,12 @@ const DataRow: React.FC<DataRowProps> = ({
             ></span>
           </div>
         )}
-
         <div className="ml-2 flex-1 overflow-hidden">
           {isTitleLong ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <span
-                  className={`cursor-default text-base ${
-                    isSelected ? 'text-highlight' : 'text-muted-foreground'
-                  } [overflow:hidden] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]`}
+                  className={`cursor-default text-base ${isSelected ? 'text-highlight' : 'text-muted-foreground'} [overflow:hidden] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]`}
                 >
                   {title}
                 </span>
@@ -192,22 +182,33 @@ const DataRow: React.FC<DataRowProps> = ({
             </Tooltip>
           ) : (
             <span
-              className={`text-base ${
-                isSelected ? 'text-highlight' : 'text-muted-foreground'
-              } [overflow:hidden] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]`}
+              className={`text-base ${isSelected ? 'text-highlight' : 'text-muted-foreground'} [overflow:hidden] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]`}
             >
               {title}
             </span>
           )}
         </div>
-
         <div className="relative ml-2 flex items-center space-x-1">
           <Button
             size="icon"
             variant="ghost"
-            className={`h-6 w-6 transition-opacity ${
-              isSelected || !isVisible ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-            }`}
+            className="h-6 w-6"
+            aria-label="Toggle Details"
+            onClick={e => {
+              e.stopPropagation();
+              setCollapsed(!collapsed);
+            }}
+          >
+            {collapsed ? (
+              <Icons.ChevronClosed className="h-5 w-5" />
+            ) : (
+              <Icons.ChevronOpen className="h-5 w-5" />
+            )}
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className={`h-6 w-6 transition-opacity ${isSelected || !isVisible ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
             aria-label={isVisible ? 'Hide' : 'Show'}
             onClick={e => {
               e.stopPropagation();
@@ -216,9 +217,22 @@ const DataRow: React.FC<DataRowProps> = ({
           >
             {isVisible ? <Icons.Hide className="h-6 w-6" /> : <Icons.Show className="h-6 w-6" />}
           </Button>
-
+          {onDescribe && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="flex items-center gap-1 px-2"
+              aria-label="Describe"
+              onClick={e => {
+                e.stopPropagation();
+                onDescribe(measurementUID, '');
+              }}
+            >
+              <Icons.Info className="h-5 w-5" />
+              <span className="text-sm font-medium">Describe</span>
+            </Button>
+          )}
           {isLocked && !disableEditing && <Icons.Lock className="text-muted-foreground h-6 w-6" />}
-
           {disableEditing && <div className="h-6 w-6"></div>}
           {!disableEditing && (
             <DropdownMenu onOpenChange={open => setIsDropdownOpen(open)}>
@@ -226,11 +240,7 @@ const DataRow: React.FC<DataRowProps> = ({
                 <Button
                   size="icon"
                   variant="ghost"
-                  className={`h-6 w-6 transition-opacity ${
-                    isSelected || isDropdownOpen
-                      ? 'opacity-100'
-                      : 'opacity-0 group-hover:opacity-100'
-                  }`}
+                  className={`h-6 w-6 transition-opacity ${isSelected || isDropdownOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
                   aria-label="Actions"
                   onClick={e => e.stopPropagation()}
                 >
@@ -259,96 +269,32 @@ const DataRow: React.FC<DataRowProps> = ({
                   <Icons.Lock className="text-foreground" />
                   <span className="pl-2">{isLocked ? 'Unlock' : 'Lock'}</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={e => handleAction('Describe', e)}>
-                  <Icons.Info className="text-foreground" />
-                  <span className="pl-2">Describe</span>
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           )}
         </div>
       </div>
 
-      {details && (details.primary?.length > 0 || details.secondary?.length > 0) && (
-        <div className="ml-7 px-2 py-2">
-          <div className="text-secondary-foreground flex items-center gap-1 text-base leading-normal">
-            {details.primary?.length > 0 && renderDetails(details.primary)}
-            {details.secondary?.length > 0 && (
-              <div className="text-muted-foreground ml-auto text-sm">
-                {renderDetails(details.secondary)}
+      {!collapsed && (
+        <>
+          {details && (details.primary?.length > 0 || details.secondary?.length > 0) && (
+            <div className="ml-7 px-2 py-2">
+              <div className="text-secondary-foreground flex items-center gap-1 text-base leading-normal">
+                {details.primary?.length > 0 && renderDetails(details.primary)}
+                {details.secondary?.length > 0 && (
+                  <div className="text-muted-foreground ml-auto text-sm">
+                    {renderDetails(details.secondary)}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      <div className="ml-7 px-2 py-1">
-        {measurementDescription?.description &&
-        Array.isArray(measurementDescription.description.features) &&
-        measurementDescription.description.features.length > 0 ? (
-          <div>
-            <div className="mb-2 flex flex-wrap items-center gap-2">
-              <span className="text-secondary-foreground font-semibold">Cechy:</span>
-              {measurementDescription.description.features.map((feature, idx, arr) => (
-                <React.Fragment key={feature.uuid || feature.name + idx}>
-                  <span className="rounded-2xl bg-[#23274a] px-3 py-1 text-sm font-medium text-white">
-                    {feature.name}
-                  </span>
-                  {idx !== arr.length - 1 && <span className="mx-1 text-xl text-[#888]">→</span>}
-                </React.Fragment>
-              ))}
             </div>
+          )}
 
-            {Array.isArray(measurementDescription.description.conclusions) &&
-              measurementDescription.description.conclusions.length > 0 && (
-                <div className="mb-2 flex flex-wrap items-center gap-2">
-                  <span className="font-semibold text-pink-300">Wnioski:</span>
-                  {measurementDescription.description.conclusions.map((conclusion, idx) => (
-                    <span
-                      key={conclusion.uuid || conclusion.name + idx}
-                      className="rounded-2xl bg-pink-900 px-3 py-1 text-sm font-medium text-pink-200"
-                    >
-                      {conclusion.name}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-            {Array.isArray(measurementDescription.description.diagnoses) &&
-              measurementDescription.description.diagnoses.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-semibold text-[#ffdcb0]">Rozpoznania:</span>
-                  {measurementDescription.description.diagnoses.map((diagnosis, idx) => (
-                    <span
-                      key={diagnosis.uuid || diagnosis.name + idx}
-                      className="rounded-2xl bg-[#653828] px-3 py-1 text-sm font-medium text-[#ffdcb0]"
-                    >
-                      {diagnosis.name}
-                    </span>
-                  ))}
-                </div>
-              )}
+          <div className="ml-7 flex flex-col gap-4 px-2 py-1">
+            <MeasurementDescriptionDetails description={measurementDescription} />
           </div>
-        ) : (
-          <div className="text-secondary-foreground text-base">
-            <strong>Brak opisu</strong>
-          </div>
-        )}
-      </div>
-
-      <div className="ml-7 px-2 py-1">
-        {Array.isArray(measurementDescription?.localization) &&
-        measurementDescription.localization.length > 0 ? (
-          <div className="text-secondary-foreground text-base">
-            <strong>Lokalizacja:</strong>{' '}
-            {measurementDescription.localization.map(d => d.name).join(' → ')}
-          </div>
-        ) : (
-          <div className="text-secondary-foreground text-base">
-            <strong>Brak Lokalizacji</strong>
-          </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 };

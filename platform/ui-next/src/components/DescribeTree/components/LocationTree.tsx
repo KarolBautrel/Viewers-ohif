@@ -1,92 +1,232 @@
 import React, { useState } from 'react';
-import { cleanChoice } from '../helpers';
-export default function LocationTree({
-  data,
-  onDone,
-  onBack,
-}: {
-  data: any[];
-  onDone: (selected: any[]) => void;
-  onBack: () => void;
-}) {
-  const [selectedPath, setSelectedPath] = useState<any[]>([]);
 
-  const nodes =
-    selectedPath.length === 0
-      ? data
-      : selectedPath[selectedPath.length - 1].children_lokalizacja || [];
+export default function LocationTree({ data, onDone, onBack, onFinish }) {
+  const [pathStack, setPathStack] = useState<any[]>([]);
+  const [currentLevel, setCurrentLevel] = useState([
+    { parentNode: data[0], childNodes: data[0].children_lokalizacja || [] },
+  ]);
+  const [tree, setTree] = useState<any[]>([]);
+  const [selectedNodes, setSelectedNodes] = useState<any[]>([]);
 
-  function handleSelect(node: any) {
-    console.log(node)
-    setSelectedPath([...selectedPath, node]);
+  function toggleSelect(node: any, parent: any) {
+    console.log('toggleSelect:', {
+      node: node.name,
+      uuid: node.uuid,
+      parent: parent.name,
+      parentUuid: parent.uuid,
+    });
+
+    const exists = selectedNodes.find(
+      n => n.node.uuid === node.uuid && n.parentUuid === parent.uuid
+    );
+    if (exists) {
+      setSelectedNodes(prev =>
+        prev.filter(n => !(n.node.uuid === node.uuid && n.parentUuid === parent.uuid))
+      );
+    } else {
+      setSelectedNodes(prev => [...prev, { node, parentUuid: parent.uuid }]);
+    }
   }
 
-  function handleBackOneLevel() {
-    setSelectedPath(selectedPath.slice(0, -1));
+  function mergeChildIntoTree(baseTree, parentUuid, childNode, depth = 0) {
+    console.log(
+      ' '.repeat(depth * 2) +
+        `[depth ${depth}] SZUKAM parentUuid: ${parentUuid} w [${baseTree.map(n => n.name + ' (' + n.uuid + ')').join(', ')}]`
+    );
+    return baseTree.map(node => {
+      if (node.uuid === parentUuid) {
+        console.log(
+          ' '.repeat(depth * 2) +
+            `[depth ${depth}] ==> ZNALAZŁEM parenta: ${node.name} (${node.uuid}), dodaję dziecko: ${childNode.name} (${childNode.uuid})`
+        );
+        const existingChild = (node.children_lokalizacja || []).find(
+          c => c.uuid === childNode.uuid
+        );
+        if (existingChild) return node;
+        return {
+          ...node,
+          children_lokalizacja: [
+            ...(node.children_lokalizacja || []),
+            { ...childNode, children_lokalizacja: [] },
+          ],
+        };
+      }
+      if (node.children_lokalizacja?.length > 0) {
+        return {
+          ...node,
+          children_lokalizacja: mergeChildIntoTree(
+            node.children_lokalizacja,
+            parentUuid,
+            childNode,
+            depth + 1
+          ),
+        };
+      }
+      return node;
+    });
   }
-  function handleConfirm() {
-    const cleanedSelectedPath = cleanChoice(selectedPath);
+  function findNodeByUuid(tree, uuid) {
+    for (const node of tree) {
+      if (node.uuid === uuid) return node;
+      if (node.children_lokalizacja?.length) {
+        const res = findNodeByUuid(node.children_lokalizacja, uuid);
+        if (res) return res;
+      }
+    }
+    return null;
+  }
 
-    onDone(cleanedSelectedPath);
+  function handleNextLevel() {
+    let updatedTree = [...tree];
+    console.log('--- handleNextLevel ---');
+
+    selectedNodes.forEach(({ node, parentUuid }) => {
+      console.log('Trying to attach:', node.name, node.uuid, 'to parentUuid:', parentUuid);
+      if (tree.find(t => t.name === node.uuid)) return;
+
+      const existsInTree = findNodeByUuid(updatedTree, parentUuid);
+      if (existsInTree) {
+        updatedTree = mergeChildIntoTree(updatedTree, parentUuid, node);
+      } else {
+        updatedTree.push({ ...node, children_lokalizacja: [] });
+      }
+    });
+    console.log('updatedTree after handleNextLevel:', JSON.stringify(updatedTree, null, 2));
+    // console.log('handleNextLevel: selectedNodes', selectedNodes);
+    // console.log('handleNextLevel: pathStack', pathStack);
+    const nextLevel = selectedNodes
+      .flatMap(entry => ({
+        parentNode: entry.node,
+        childNodes: entry.node.children_lokalizacja || [],
+      }))
+      .filter(entry => entry.childNodes.length > 0);
+
+    setTree(updatedTree);
+    setPathStack(prev => [...prev, { level: currentLevel, selected: selectedNodes }]);
+    setCurrentLevel(nextLevel);
+    setSelectedNodes([]);
+  }
+
+  function handleBack() {
+    if (pathStack.length === 0) {
+      onBack();
+      return;
+    }
+    const last = pathStack[pathStack.length - 1];
+    setCurrentLevel(last.level);
+    setSelectedNodes(last.selected);
+    setPathStack(prev => prev.slice(0, -1));
   }
 
   function handleReset() {
-    setSelectedPath([]);
-    onBack();
+    setPathStack([]);
+    setSelectedNodes([]);
+    setTree([]);
+    setCurrentLevel([{ parentNode: data[0], childNodes: data[0].children_lokalizacja || [] }]);
   }
+
+  function handleFinish() {
+    let updatedTree = [...tree];
+    selectedNodes.forEach(({ node, parentUuid }) => {
+      if (findNodeByUuid(updatedTree, node.uuid)) return;
+      const existsInTree = findNodeByUuid(updatedTree, parentUuid);
+      if (existsInTree) {
+        updatedTree = mergeChildIntoTree(updatedTree, parentUuid, node);
+      } else {
+        updatedTree.push({ ...node, children_lokalizacja: [] });
+      }
+    });
+    console.log('handleFinish: updatedTree', JSON.stringify(updatedTree, null, 2));
+    onFinish(updatedTree);
+  }
+
+  const hasNextLevel = selectedNodes.some(
+    entry => (entry.node.children_lokalizacja || []).length > 0
+  );
+
+  const selectedLabels = selectedNodes.map(n => n.node.name);
 
   return (
     <div className="flex w-full flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-2">
-        {selectedPath.map((node, idx) => (
-          <React.Fragment key={node.element_id_property}>
-            <span className="rounded-2xl bg-[#23274a] px-3 py-1 text-sm font-medium text-white">
-              {node.name}
-            </span>
-            {idx < selectedPath.length - 1 && <span className="text-sm text-[#C9C9C9]">→</span>}
-          </React.Fragment>
-        ))}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        {nodes.length > 0 ? (
-          nodes.map(node => (
-            <button
-              key={node.element_id_property}
-              className="rounded bg-[#23274a] px-3 py-2 text-sm font-semibold text-white hover:bg-[#2d314f]"
-              onClick={() => handleSelect(node)}
-            >
-              {node.name}
-            </button>
-          ))
-        ) : (
-          <div className="text-[#9FA6B2]">To już najniższy poziom drzewa.</div>
-        )}
-      </div>
-      <div className="mt-3 flex flex-row gap-2">
-        {selectedPath.length > 0 && (
-          <>
-            <button
-              className="flex-1 rounded bg-[#348CFD] py-2 text-white"
-              onClick={handleConfirm}
-            >
-              Zatwierdź
-            </button>
-            <button
-              className="flex-1 rounded bg-[#23274a] py-2 text-[#C9C9C9]"
-              onClick={handleBackOneLevel}
-            >
-              Wstecz
-            </button>
-          </>
-        )}
+      <div className="flex flex-row items-center gap-2">
+        <span className="text-lg font-semibold text-[#C9C9C9]">Lokalizacja ROI</span>
         <button
-          className="flex-1 rounded bg-[#23274a] py-2 text-[#C9C9C9]"
-          onClick={handleReset}
+          className="ml-auto rounded bg-[#23274a] px-3 py-1 text-xs text-white hover:bg-[#2f335d]"
+          onClick={handleBack}
         >
-          Reset
+          {pathStack.length === 0 ? 'Wyjdź' : 'Wróć'}
         </button>
       </div>
+
+      {selectedLabels.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {selectedLabels.map(label => (
+            <span
+              key={label}
+              className="rounded-2xl bg-blue-900 px-3 py-1 text-xs font-medium text-blue-100"
+            >
+              {label}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {currentLevel.map(({ parentNode, childNodes }) => (
+        <div
+          key={parentNode.uuid}
+          className="mb-4"
+        >
+          <div className="mb-1 text-xs text-[#C9C9C9]">
+            Lokalizacje pochodzące od: {parentNode.name}
+          </div>
+          <div className="flex flex-col gap-3">
+            {childNodes.map(child => {
+              const selected = selectedNodes.find(
+                n => n.node.uuid === child.uuid && n.parentUuid === parentNode.uuid
+              );
+              return (
+                <button
+                  key={child.uuid + parentNode.name}
+                  className={`rounded px-4 py-3 text-base font-semibold transition ${
+                    selected
+                      ? 'bg-[#348CFD] text-white hover:bg-[#225BA4]'
+                      : 'bg-[#23274a] text-white hover:bg-[#2f335d]'
+                  }`}
+                  onClick={() => toggleSelect(child, parentNode)}
+                >
+                  {child.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
+      {selectedNodes.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {hasNextLevel && (
+            <button
+              className="mt-4 w-full rounded bg-[#14d6f8] py-3 text-lg font-bold text-black hover:bg-[#0db8d7]"
+              onClick={handleNextLevel}
+            >
+              Przejdź dalej
+            </button>
+          )}
+          <button
+            className="mt-2 w-full rounded bg-[#1f3b82] py-3 text-lg text-white hover:bg-[#16285b]"
+            onClick={handleFinish}
+          >
+            Zakończ wybór lokalizacji
+          </button>
+        </div>
+      )}
+
+      <button
+        className="mt-3 w-full text-center text-xs text-[#C9C9C9] hover:underline"
+        onClick={handleReset}
+      >
+        Resetuj lokalizacje
+      </button>
     </div>
   );
 }

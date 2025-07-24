@@ -6,7 +6,6 @@ import { useMeasurements } from '../hooks/useMeasurements';
 import { DescribeTree } from '../../../../platform/ui-next/src/components/DescribeTree/index'; //zmienie sobie sciezke
 import { DescribeModal } from '../../../../platform/ui-next/src/components/DescribeModal/index'; //zmienie sobie sciezke
 import { MeasurementModal } from '../../../../platform/ui-next/src/components/DescribeModal/index';
-import { useWebSocketSender } from '../hooks/useWebsocketListener';
 import { useBroadcastChannelSender } from '../hooks/useBroadcastChannelSender';
 import { ReferralDataSelector } from '../../../../platform/ui-next/src/components/ReferralDataSelector/index';
 
@@ -15,30 +14,6 @@ const { filterAdditionalFindings: filterAdditionalFinding, filterAny } = utils.M
 export type withAppAndFilters = withAppTypes & {
   measurementFilter: (item) => boolean;
 };
-
-export const DANE_ZE_SKIEROWANIA = [
-  ///NA POTRZEBY PREZENTACYJNE, ZROBIMY ENDPOINT KTORY BEDZIE POBIERAL TO
-
-  'nikotynizm',
-  'nowotwór złośliwy w wywiadzie',
-  'pacjent w immunosupresji',
-  'zakażenie wirusem HIV/AIDS',
-  'stan po przeszczepie allogenicznym narządu/szpiku',
-  'czynniki ryzyka',
-  'kontrola po 3 miesiącach',
-  'kontrola po roku',
-  'nikotynizm',
-  'kontrola po >600 dniach',
-  'kontrola po 400-600 dniach',
-  'kontrola po <=400 dniach',
-  'kontrola po >400 dniach',
-  'kontrola po 4 latach ',
-  'kontrola po 3 miesiącach',
-  'badanie kontrolne',
-  'kontrola po 3=>=6 miesiącach',
-];
-
-export const WARUNKI_BADANIA = ['warunek 1', 'warunek 2', 'warunek 3', 'warunek 4'];
 
 export default function PanelMeasurement({
   servicesManager,
@@ -49,13 +24,15 @@ export default function PanelMeasurement({
   const measurementsPanelRef = useRef(null);
 
   const [referralData, setReferralData] = useState<string[]>([]);
-  const [circumstancesData, setCircumstancesData] = useState<string[]>([]);
+  const [circumstancesData, setCircumstancesData] = useState<Record<string,string>[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [showJSONModal, setShowJSONModal] = useState(false);
 
   const [describeMode, setDescribeMode] = useState<{ uid: string } | null>(null);
   const [userHasSelected, setUserHasSelected] = useState(false);
-
+  const [risId, setRisId] = useState<string | null>(null);
+  const [patientGender, setPatientGender] = useState<string|null>()
+  const [patientAge, setPatientAge] = useState<number|null>()
   const { measurementService } = servicesManager.services;
   const displayMeasurements = useMeasurements(servicesManager, {
     measurementFilter,
@@ -71,7 +48,21 @@ export default function PanelMeasurement({
     [measurementService]
   );
 
-  const { sendMessage } = useBroadcastChannelSender('radiology-channel', handleWsMessage);
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const uid = queryParams.get('risID');
+    const gender = queryParams.get('patientGender')
+    const age = queryParams.get("patientAge")
+    setPatientGender(gender)
+    setPatientAge(age)
+    setRisId(uid);
+  }, []);
+
+    const { sendMessage } = useBroadcastChannelSender(
+    risId ? `radiology-channel-${risId}` : 'radiology-channel-default',
+    handleWsMessage
+  );
 
   const handleRaportJson = () => {
     setShowJSONModal(true);
@@ -98,11 +89,23 @@ export default function PanelMeasurement({
     }
   }, [displayMeasurements.length]);
 
+  // useEffect(() => {
+  //   if (!userHasSelected) {
+  //     setModalOpen(true);
+  //   }
+  // }, [userHasSelected]);
+  const prevMeasurementCount = useRef(0);
+
   useEffect(() => {
-    if (!userHasSelected) {
+    const firstMeasurement =
+      prevMeasurementCount.current === 0 && displayMeasurements.length > 0 && !userHasSelected;
+
+    if (firstMeasurement) {
       setModalOpen(true);
     }
-  }, [userHasSelected]);
+
+    prevMeasurementCount.current = displayMeasurements.length;
+  }, [displayMeasurements.length, userHasSelected]);
   const bindCommand = (name: string | string[], options?) => {
     return (...args: any[]) => {
       const [uid, description] = args;
@@ -207,6 +210,8 @@ export default function PanelMeasurement({
               measurements={measurements}
               referralData={referralData}
               circumstancecData={circumstancesData}
+              patientAge = {patientAge}
+              patientGender = {patientGender}
             />
           </div>
         </div>
@@ -267,3 +272,4 @@ export default function PanelMeasurement({
     </>
   );
 }
+
