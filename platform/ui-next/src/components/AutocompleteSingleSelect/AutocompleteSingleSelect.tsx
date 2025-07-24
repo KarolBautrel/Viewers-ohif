@@ -3,7 +3,8 @@ import React, { useState, useRef, useEffect } from 'react';
 function AutocompleteSingleSelect({ options, value, onChange, placeholder = 'Wpisz lub wybierz...' }) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
-  const ref = useRef();
+  const ref = useRef(null);
+  const inputRef = useRef(null);
 
   const filtered = options.filter(opt => opt.toLowerCase().includes(query.toLowerCase()));
 
@@ -22,22 +23,25 @@ function AutocompleteSingleSelect({ options, value, onChange, placeholder = 'Wpi
 
   function handleSelect(opt) {
     onChange(opt);
+    setQuery(opt);
     setOpen(false);
+    if (inputRef.current) inputRef.current.blur();
   }
 
   return (
     <div className="relative" ref={ref}>
       <div
         className={`flex h-10 w-full cursor-pointer items-center rounded border border-[#225BA4] bg-[#0B0F2B] px-3 ${open ? 'ring-2 ring-[#14d6f8]' : ''}`}
-        onClick={() => setOpen(true)}
+        onClick={() => { if (!open) setOpen(true); }}
       >
         <input
+          ref={inputRef}
           className="w-full bg-transparent text-[16px] text-white outline-none"
           placeholder={placeholder}
           value={query}
           onChange={e => {
             setQuery(e.target.value);
-            onChange(''); 
+            onChange('');
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
@@ -54,7 +58,8 @@ function AutocompleteSingleSelect({ options, value, onChange, placeholder = 'Wpi
               className={`flex cursor-pointer items-center px-3 py-2 text-white hover:bg-[#225BA4] ${
                 value === opt ? 'bg-[rgba(134,142,150,0.15)]' : ''
               }`}
-              onClick={e => {
+              onMouseDown={e => {
+                e.preventDefault();
                 e.stopPropagation();
                 handleSelect(opt);
               }}
