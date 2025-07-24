@@ -1,7 +1,7 @@
 import { API_URL } from '../consts';
 
 export async function fetchReferralOptions(): Promise<string[]> {
-  const res = await fetch(`${API_URL}/api/neo/referrals`);
+  const res = await fetch(`${API_URL}/api/neo/referrals/`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
 
@@ -19,7 +19,7 @@ export async function fetchReferralOptions(): Promise<string[]> {
 }
 
 export async function fetchLocalizationTree(): Promise<any[]> {
-  const res = await fetch(`${API_URL}/api/neo/localizations/all`);
+  const res = await fetch(`${API_URL}/api/neo/localizations/all/`);
   const data = await res.json();
 
   if (!res.ok || !Array.isArray(data) || data.length === 0) {
@@ -52,7 +52,7 @@ export async function fetchFeatureTree({
     gender: patientGender
   });
 
-  const res = await fetch(`${API_URL}/api/neo/symptoms/by-name/chars/?${params}`, {
+  const res = await fetch(`${API_URL}/api/neo/symptoms/by-name/chars/?${params}/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ referral_data: referralData }),
@@ -68,7 +68,7 @@ export async function fetchFeatureTree({
 }
 
 export async function fetchSymptoms() {
-  const res = await fetch(`${API_URL}/api/neo/symptoms`);
+  const res = await fetch(`${API_URL}/api/neo/symptoms/`);
 
   const data = await res.json();
 
@@ -80,7 +80,7 @@ export async function fetchSymptoms() {
 }
 
 export async function fetchConditions() {
-  const res = await fetch(`${API_URL}/api/neo/conditions/all`);
+  const res = await fetch(`${API_URL}/api/neo/conditions/all/`);
 
   const data = await res.json();
 
