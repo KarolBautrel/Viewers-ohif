@@ -6,7 +6,6 @@ import { useMeasurements } from '../hooks/useMeasurements';
 import { DescribeTree } from '../../../../platform/ui-next/src/components/DescribeTree/index'; //zmienie sobie sciezke
 import { DescribeModal } from '../../../../platform/ui-next/src/components/DescribeModal/index'; //zmienie sobie sciezke
 import { MeasurementModal } from '../../../../platform/ui-next/src/components/DescribeModal/index';
-import { useWebSocketSender } from '../hooks/useWebsocketListener';
 import { useBroadcastChannelSender } from '../hooks/useBroadcastChannelSender';
 import { ReferralDataSelector } from '../../../../platform/ui-next/src/components/ReferralDataSelector/index';
 
@@ -32,7 +31,8 @@ export default function PanelMeasurement({
   const [describeMode, setDescribeMode] = useState<{ uid: string } | null>(null);
   const [userHasSelected, setUserHasSelected] = useState(false);
   const [risId, setRisId] = useState<string | null>(null);
-
+  const [patientGender, setPatientGender] = useState<string|null>()
+  const [patientAge, setPatientAge] = useState<number|null>()
   const { measurementService } = servicesManager.services;
   const displayMeasurements = useMeasurements(servicesManager, {
     measurementFilter,
@@ -52,7 +52,10 @@ export default function PanelMeasurement({
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const uid = queryParams.get('risID');
-
+    const gender = queryParams.get('patientGender')
+    const age = queryParams.get("patientAge")
+    setPatientGender(gender)
+    setPatientAge(age)
     setRisId(uid);
   }, []);
 
@@ -207,6 +210,8 @@ export default function PanelMeasurement({
               measurements={measurements}
               referralData={referralData}
               circumstancecData={circumstancesData}
+              patientAge = {patientAge}
+              patientGender = {patientGender}
             />
           </div>
         </div>
@@ -267,3 +272,4 @@ export default function PanelMeasurement({
     </>
   );
 }
+
