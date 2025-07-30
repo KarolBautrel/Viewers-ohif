@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function LocationTree({ data, onDone, onBack, onFinish }) {
+  const { t } = useTranslation('MeasurementDescribe');
+
   const [pathStack, setPathStack] = useState<any[]>([]);
   const [currentLevel, setCurrentLevel] = useState([
     { parentNode: data[0], childNodes: data[0].children_lokalizacja || [] },
@@ -9,13 +12,6 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
   const [selectedNodes, setSelectedNodes] = useState<any[]>([]);
 
   function toggleSelect(node: any, parent: any) {
-    console.log('toggleSelect:', {
-      node: node.name,
-      uuid: node.uuid,
-      parent: parent.name,
-      parentUuid: parent.uuid,
-    });
-
     const exists = selectedNodes.find(
       n => n.node.uuid === node.uuid && n.parentUuid === parent.uuid
     );
@@ -29,16 +25,8 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
   }
 
   function mergeChildIntoTree(baseTree, parentUuid, childNode, depth = 0) {
-    console.log(
-      ' '.repeat(depth * 2) +
-        `[depth ${depth}] SZUKAM parentUuid: ${parentUuid} w [${baseTree.map(n => n.name + ' (' + n.uuid + ')').join(', ')}]`
-    );
     return baseTree.map(node => {
       if (node.uuid === parentUuid) {
-        console.log(
-          ' '.repeat(depth * 2) +
-            `[depth ${depth}] ==> ZNALAZŁEM parenta: ${node.name} (${node.uuid}), dodaję dziecko: ${childNode.name} (${childNode.uuid})`
-        );
         const existingChild = (node.children_lokalizacja || []).find(
           c => c.uuid === childNode.uuid
         );
@@ -65,6 +53,7 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
       return node;
     });
   }
+
   function findNodeByUuid(tree, uuid) {
     for (const node of tree) {
       if (node.uuid === uuid) return node;
@@ -78,10 +67,7 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
 
   function handleNextLevel() {
     let updatedTree = [...tree];
-    console.log('--- handleNextLevel ---');
-
     selectedNodes.forEach(({ node, parentUuid }) => {
-      console.log('Trying to attach:', node.name, node.uuid, 'to parentUuid:', parentUuid);
       if (tree.find(t => t.name === node.uuid)) return;
 
       const existsInTree = findNodeByUuid(updatedTree, parentUuid);
@@ -91,9 +77,7 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
         updatedTree.push({ ...node, children_lokalizacja: [] });
       }
     });
-    console.log('updatedTree after handleNextLevel:', JSON.stringify(updatedTree, null, 2));
-    // console.log('handleNextLevel: selectedNodes', selectedNodes);
-    // console.log('handleNextLevel: pathStack', pathStack);
+
     const nextLevel = selectedNodes
       .flatMap(entry => ({
         parentNode: entry.node,
@@ -136,7 +120,6 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
         updatedTree.push({ ...node, children_lokalizacja: [] });
       }
     });
-    console.log('handleFinish: updatedTree', JSON.stringify(updatedTree, null, 2));
     onFinish(updatedTree);
   }
 
@@ -149,12 +132,12 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="flex flex-row items-center gap-2">
-        <span className="text-lg font-semibold text-[#C9C9C9]">Lokalizacja ROI</span>
+        <span className="text-lg font-semibold text-[#C9C9C9]">{t('locationTree.title')}</span>
         <button
           className="ml-auto rounded bg-[#23274a] px-3 py-1 text-xs text-white hover:bg-[#2f335d]"
           onClick={handleBack}
         >
-          {pathStack.length === 0 ? 'Wyjdź' : 'Wróć'}
+          {pathStack.length === 0 ? t('locationTree.exit') : t('locationTree.back')}
         </button>
       </div>
 
@@ -177,7 +160,7 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
           className="mb-4"
         >
           <div className="mb-1 text-xs text-[#C9C9C9]">
-            Lokalizacje pochodzące od: {parentNode.name}
+            {t('locationTree.from', { parent: parentNode.name })}
           </div>
           <div className="flex flex-col gap-3">
             {childNodes.map(child => {
@@ -209,14 +192,14 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
               className="mt-4 w-full rounded bg-[#14d6f8] py-3 text-lg font-bold text-black hover:bg-[#0db8d7]"
               onClick={handleNextLevel}
             >
-              Przejdź dalej
+              {t('locationTree.next')}
             </button>
           )}
           <button
             className="mt-2 w-full rounded bg-[#1f3b82] py-3 text-lg text-white hover:bg-[#16285b]"
             onClick={handleFinish}
           >
-            Zakończ wybór lokalizacji
+            {t('locationTree.finish')}
           </button>
         </div>
       )}
@@ -225,7 +208,7 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
         className="mt-3 w-full text-center text-xs text-[#C9C9C9] hover:underline"
         onClick={handleReset}
       >
-        Resetuj lokalizacje
+        {t('locationTree.reset')}
       </button>
     </div>
   );

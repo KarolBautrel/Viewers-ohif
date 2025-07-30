@@ -1,0 +1,82 @@
+{
+  "title": "Describe measurement",
+  "errorTitle": "An error occurred:",
+  "errorMessage": "Failed to fetch data for the tree.",
+  "backButton": "Back",
+  "selectMode": {
+    "whatToDo": "What do you want to do?",
+    "editLocalization": "Edit ROI localization",
+    "addVirtualLocation": "Add location outside ROI",
+    "describe": "Describe",
+    "measurementLocation": "Measurement location:",
+    "outsideROI": "outside ROI",
+    "confirm": "Confirm"
+  },
+  "loading": "Loading...",
+  "form": {
+    "chooseSymptom": "Choose symptom",
+    "placeholderSymptom": "Type or select a symptom",
+    "exit": "Exit",
+    "loading": "Loading...",
+    "fetchFeatures": "Fetch features"
+  },
+  "features": {
+    "title": "Select features",
+    "exit": "Exit",
+    "back": "Back",
+    "originFrom": "Features from: {{parent}}",
+    "conclusions": "Conclusions",
+    "differentialDiagnoses": "Differential diagnoses",
+    "weight": "weight: {{weight}}",
+    "noFeaturesAvailable": "No features available for this finding. You can finish selection.",
+    "finish": "Finish selection",
+    "next": "Next",
+    "reset": "Reset"
+  },
+  "details": {
+    "radiologicalFinding": "Radiological finding:",
+    "measurementLocation": "Measurement location:",
+    "outsideROI": "outside ROI",
+    "features": "Features:",
+    "conclusions": "Conclusions:",
+    "diagnoses": "Diagnoses:"
+  },
+  "locationTree": {
+    "title": "ROI Location",
+    "exit": "Exit",
+    "back": "Back",
+    "from": "Locations from: {{parent}}",
+    "next": "Next",
+    "finish": "Finish location selection",
+    "reset": "Reset locations"
+  },
+  "descriptionModal": {
+    "title": "Input data",
+    "close": "Close",
+    "descriptionLine1": "Provide referral data and examination conditions.",
+    "descriptionLine2": "They affect diagnoses and measurement features.",
+    "referralLabel": "Referral data",
+    "conditionsLabel": "Examination conditions",
+    "loadingReferrals": "Loading data...",
+    "loadingConditions": "Loading conditions...",
+    "clear": "Clear",
+    "select": "Select",
+    "errorReferrals": "Error while fetching referral data.",
+    "errorConditions": "Error while fetching conditions."
+  },
+  "measurementModal": {
+    "title": "Measurement Data (JSON)",
+    "copy": "Copy",
+    "copiedAlert": "JSON copied to clipboard",
+    "close": "Close"
+  },
+  "multiSelect": {
+    "placeholder": "Type or select...",
+    "filterPlaceholder": "Type to filter...",
+    "noResults": "No results"
+  },
+  "autocomplete": {
+    "placeholder": "Type or select...",
+    "noResults": "No results"
+  }
+}

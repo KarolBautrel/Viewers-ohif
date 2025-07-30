@@ -1,21 +1,29 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
-function MultiSelect({ options, value, onChange }) {
+interface MultiSelectProps {
+  options: string[];
+  value: string[];
+  onChange: (newValues: string[]) => void;
+}
+
+function MultiSelect({ options, value, onChange }: MultiSelectProps) {
+  const { t } = useTranslation('MeasurementDescribe');
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
-  const ref = useRef();
+  const ref = useRef<HTMLDivElement>(null);
 
   const filtered = options.filter(opt => opt.toLowerCase().includes(query.toLowerCase()));
 
   useEffect(() => {
-    function handle(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    function handle(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     }
     document.addEventListener('mousedown', handle);
     return () => document.removeEventListener('mousedown', handle);
   }, []);
 
-  function toggleValue(opt) {
+  function toggleValue(opt: string) {
     if (value.includes(opt)) {
       onChange(value.filter(v => v !== opt));
     } else {
@@ -29,13 +37,15 @@ function MultiSelect({ options, value, onChange }) {
       ref={ref}
     >
       <div
-        className={`flex h-auto min-h-[40px] w-full cursor-pointer items-center rounded border border-[#225BA4] bg-[#0B0F2B] px-3 ${open ? 'ring-2 ring-[#14d6f8]' : ''} `}
+        className={`flex h-auto min-h-[40px] w-full cursor-pointer items-center rounded border border-[#225BA4] bg-[#0B0F2B] px-3 ${
+          open ? 'ring-2 ring-[#14d6f8]' : ''
+        }`}
         onClick={() => setOpen(v => !v)}
       >
         <div className="flex w-full min-w-0 flex-row flex-wrap gap-1">
           {value.length === 0 && (
             <span className="font-roboto whitespace-nowrap text-[16px] text-[#828282]">
-              Wpisz lub wybierz...
+              {t('multiSelect.placeholder')}
             </span>
           )}
           {value.map(val => (
@@ -58,13 +68,15 @@ function MultiSelect({ options, value, onChange }) {
           <input
             autoFocus
             className="font-roboto w-full border-b border-[#225BA4] bg-transparent px-3 py-2 text-[16px] text-white outline-none"
-            placeholder="Wpisz, by filtrować..."
+            placeholder={t('multiSelect.filterPlaceholder')}
             value={query}
             onChange={e => setQuery(e.target.value)}
             onClick={e => e.stopPropagation()}
           />
           <div>
-            {filtered.length === 0 && <div className="px-3 py-2 text-[#828282]">Brak wyników</div>}
+            {filtered.length === 0 && (
+              <div className="px-3 py-2 text-[#828282]">{t('multiSelect.noResults')}</div>
+            )}
             {filtered.map(opt => (
               <div
                 key={opt}

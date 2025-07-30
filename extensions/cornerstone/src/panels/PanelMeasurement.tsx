@@ -24,15 +24,15 @@ export default function PanelMeasurement({
   const measurementsPanelRef = useRef(null);
 
   const [referralData, setReferralData] = useState<string[]>([]);
-  const [circumstancesData, setCircumstancesData] = useState<Record<string,string>[]>([]);
+  const [circumstancesData, setCircumstancesData] = useState<Record<string, string>[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [showJSONModal, setShowJSONModal] = useState(false);
 
   const [describeMode, setDescribeMode] = useState<{ uid: string } | null>(null);
   const [userHasSelected, setUserHasSelected] = useState(false);
   const [risId, setRisId] = useState<string | null>(null);
-  const [patientGender, setPatientGender] = useState<string|null>()
-  const [patientAge, setPatientAge] = useState<number|null>()
+  const [patientGender, setPatientGender] = useState<string | null>();
+  const [patientAge, setPatientAge] = useState<string | null>();
   const { measurementService } = servicesManager.services;
   const displayMeasurements = useMeasurements(servicesManager, {
     measurementFilter,
@@ -48,18 +48,17 @@ export default function PanelMeasurement({
     [measurementService]
   );
 
-
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const uid = queryParams.get('risID');
-    const gender = queryParams.get('patientGender')
-    const age = queryParams.get("patientAge")
-    setPatientGender(gender)
-    setPatientAge(age)
+    const gender = queryParams.get('patientGender');
+    const age = queryParams.get('patientAge');
+    setPatientGender(gender);
+    setPatientAge(age);
     setRisId(uid);
   }, []);
 
-    const { sendMessage } = useBroadcastChannelSender(
+  const { sendMessage } = useBroadcastChannelSender(
     risId ? `radiology-channel-${risId}` : 'radiology-channel-default',
     handleWsMessage
   );
@@ -210,8 +209,8 @@ export default function PanelMeasurement({
               measurements={measurements}
               referralData={referralData}
               circumstancecData={circumstancesData}
-              patientAge = {patientAge}
-              patientGender = {patientGender}
+              patientAge={patientAge}
+              patientGender={patientGender}
             />
           </div>
         </div>
@@ -272,4 +271,3 @@ export default function PanelMeasurement({
     </>
   );
 }
-

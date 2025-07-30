@@ -35,21 +35,21 @@ export async function fetchFeatureTree({
   unitDimension,
   referralData,
   patientAge,
-  patientGender
+  patientGender,
 }: {
   findingName: string;
   size: string;
   unitDimension: string;
   referralData: string[];
-  patientAge:number;
-  patientGender:string;
+  patientAge: string;
+  patientGender: string;
 }): Promise<any[]> {
   const params = new URLSearchParams({
     finding_name: findingName,
     size,
     unit_dimension: unitDimension ?? '',
-   age:String(patientAge),
-    gender: patientGender
+    age: patientAge,
+    gender: patientGender,
   });
 
   const res = await fetch(`${API_URL}/api/neo/symptoms/by-name/chars/?${params}/`, {

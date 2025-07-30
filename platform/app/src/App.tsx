@@ -3,9 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import i18n from '@ohif/i18n';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { I18nextProvider } from 'react-i18next';
 import { BrowserRouter } from 'react-router-dom';
-
+import { SessionCheck } from './modules/auth/components/SessionCheck';
 import Compose from './routes/Mode/Compose';
 import {
   ExtensionManager,
@@ -133,6 +134,7 @@ function App({
       providers.push([provider, { service: servicesManager.services[serviceName] }]);
     });
   }
+  const queryClient = new QueryClient();
 
   const CombinedProviders = ({ children }) => Compose({ components: providers, children });
 
@@ -164,12 +166,16 @@ function App({
   }
 
   return (
-    <CombinedProviders>
-      <BrowserRouter basename={routerBasename}>
-        {authRoutes}
-        {appRoutes}
-      </BrowserRouter>
-    </CombinedProviders>
+    <QueryClientProvider client={queryClient}>
+      <CombinedProviders>
+        <SessionCheck>
+          <BrowserRouter basename={routerBasename}>
+            {authRoutes}
+            {appRoutes}
+          </BrowserRouter>
+        </SessionCheck>
+      </CombinedProviders>
+    </QueryClientProvider>
   );
 }
 

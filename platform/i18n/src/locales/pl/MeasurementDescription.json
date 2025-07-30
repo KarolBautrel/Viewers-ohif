@@ -1,0 +1,83 @@
+{
+  "title": "Opisz pomiar",
+  "errorTitle": "Wystąpił błąd:",
+  "errorMessage": "Nie udało się pobrać danych do drzewa.",
+  "backButton": "Wróć",
+  "selectMode": {
+    "whatToDo": "Co chcesz zrobić?",
+    "editLocalization": "Edytuj lokalizację ROI",
+    "addVirtualLocation": "Dodaj lokalizacje poza ROI",
+    "describe": "Opisuj",
+    "measurementLocation": "Lokalizacja pomiaru:",
+    "outsideROI": "poza ROI",
+    "confirm": "Zatwierdź"
+  },
+  "features": {
+    "title": "Wybierz cechy",
+    "exit": "Wyjdź",
+    "back": "Wróć",
+    "originFrom": "Cechy pochodzące od: {{parent}}",
+    "conclusions": "Wnioski",
+    "differentialDiagnoses": "Rozpoznania różnicowe",
+    "weight": "waga: {{weight}}",
+    "noFeaturesAvailable": "Brak cech do wyboru dla tego objawu. Możesz zakończyć wybór.",
+    "finish": "Zakończ wybór",
+    "next": "Dalej",
+    "reset": "Reset"
+  },
+  "form": {
+    "chooseSymptom": "Wybierz objaw",
+    "placeholderSymptom": "Wpisz lub wybierz objaw",
+    "exit": "Wyjdź",
+    "loading": "Ładowanie...",
+    "fetchFeatures": "Pobierz cechy"
+  },
+  "details": {
+    "radiologicalFinding": "Objaw radiologiczny:",
+    "measurementLocation": "Lokalizacja pomiaru:",
+    "outsideROI": "poza ROI",
+    "features": "Cechy:",
+    "conclusions": "Wnioski:",
+    "diagnoses": "Rozpoznania:"
+  },
+
+  "locationTree": {
+    "title": "Lokalizacja ROI",
+    "exit": "Wyjdź",
+    "back": "Wróć",
+    "from": "Lokalizacje pochodzące od: {{parent}}",
+    "next": "Przejdź dalej",
+    "finish": "Zakończ wybór lokalizacji",
+    "reset": "Resetuj lokalizacje"
+  },
+  "describeModal": {
+    "title": "Dane wyjściowe",
+    "close": "Zamknij",
+    "descriptionLine1": "Podaj dane ze skierowania oraz warunki badania.",
+    "descriptionLine2": "Mają wpływ na rozpoznanie i cechy pomiarów.",
+    "referralLabel": "Dane ze skierowania",
+    "conditionsLabel": "Warunki badania",
+    "loadingReferrals": "Ładowanie danych...",
+    "loadingConditions": "Ładowanie warunków...",
+    "clear": "Wyczyść",
+    "select": "Wybierz",
+    "errorReferrals": "Błąd podczas pobierania danych ze skierowania.",
+    "errorConditions": "Błąd podczas pobierania warunków."
+  },
+  "measurementModal": {
+    "title": "Dane pomiarowe (JSON)",
+    "copy": "Kopiuj",
+    "copiedAlert": "Skopiowano JSON do schowka",
+    "close": "Zamknij"
+  },
+  "multiSelect": {
+    "placeholder": "Wpisz lub wybierz...",
+    "filterPlaceholder": "Wpisz, by filtrować...",
+    "noResults": "Brak wyników"
+  },
+  "autocomplete": {
+    "placeholder": "Wpisz lub wybierz...",
+    "noResults": "Brak wyników"
+  },
+  "loading": "Ładowanie..."
+}
