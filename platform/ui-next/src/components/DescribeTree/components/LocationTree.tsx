@@ -77,7 +77,6 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
         updatedTree.push({ ...node, children_lokalizacja: [] });
       }
     });
-
     const nextLevel = selectedNodes
       .flatMap(entry => ({
         parentNode: entry.node,

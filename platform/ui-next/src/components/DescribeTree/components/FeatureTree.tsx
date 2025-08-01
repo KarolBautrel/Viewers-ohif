@@ -230,7 +230,6 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
           </div>
         </div>
       ))}
-
       {(allConclusions.length > 0 || allDiagnoses.length > 0) && (
         <div className="mt-2 flex flex-col gap-3">
           {allConclusions.length > 0 && (
@@ -276,7 +275,6 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
           )}
         </div>
       )}
-
       {isLeafLevel && selectedNodes.length === 0 && (
         <>
           {suggestionsIfNoSelection.conclusions.length > 0 && (
