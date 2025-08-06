@@ -9,7 +9,7 @@ export const OpenPatientReportButton: React.FC<PatientReportButton> = ({ refId }
   return (
     <button
       className="rounded bg-blue-500 px-3 py-1 text-sm text-white transition hover:bg-blue-600"
-      onClick={() => window.open(`ne/dashboard/referrals/${refId}/description/`, `ris-${refId}`)}
+      onClick={() => window.open(`/dashboard/referrals/${refId}/description/`, `ris-${refId}`)}
     >
       Wyświetl raport pacjenta
     </button>
