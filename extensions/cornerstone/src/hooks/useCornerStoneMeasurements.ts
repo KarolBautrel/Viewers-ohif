@@ -20,6 +20,7 @@ export function useCornerstoneMeasurements({
   const [referral, setReferral] = useState<string[]>([]);
   const [circumstances, setCircumstances] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadedFromBackend, setIsLoadedFromBackend] = useState(false);
 
   useEffect(() => {
     if (!descriptionId || !studyId) return;
@@ -47,6 +48,7 @@ export function useCornerstoneMeasurements({
 
         setReferral([...new Set(allReferral)]);
         setCircumstances([...new Set(allCircumstances)]);
+        setIsLoadedFromBackend(true);
 
         measurementService.addMeasurementsFromJSON(sanitized);
         const measurementsCornerStoned = convertToCornerstoneFormat(sanitized);
@@ -56,6 +58,7 @@ export function useCornerstoneMeasurements({
       } catch (e) {
         setReferral([]);
         setCircumstances([]);
+        setIsLoadedFromBackend(false);
         console.error('Nie udalo sie pobrac:', e);
       }
       setIsLoading(false);
@@ -64,5 +67,5 @@ export function useCornerstoneMeasurements({
     fetchAndAddMeasurements();
   }, [descriptionId, studyId, measurementService]);
 
-  return { referral, circumstances, isLoading };
+  return { referral, circumstances, isLoading, isLoadedFromBackend };
 }

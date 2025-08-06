@@ -64,10 +64,18 @@ export default function PanelMeasurement({
   }, [displayMeasurements.length]);
 
   const prevMeasurementCount = useRef(0);
+  const { referral, circumstances, isLoadedFromBackend } = useCornerstoneMeasurements({
+    descriptionId,
+    studyId,
+    measurementService,
+  });
 
   useEffect(() => {
     const firstMeasurement =
-      prevMeasurementCount.current === 0 && displayMeasurements.length > 0 && !userHasSelected;
+      prevMeasurementCount.current === 0 &&
+      displayMeasurements.length > 0 &&
+      !userHasSelected &&
+      !isLoadedFromBackend;
 
     if (firstMeasurement) setModalOpen(true);
 
@@ -126,18 +134,11 @@ export default function PanelMeasurement({
             description: [],
             wnioski: [],
             rozpoznania: [],
-            circumstances: [],
-            referral: [],
           },
         });
       }
     });
   }
-  const { referral, circumstances } = useCornerstoneMeasurements({
-    descriptionId,
-    studyId,
-    measurementService,
-  });
 
   useEffect(() => {
     setReferralData(referral);
