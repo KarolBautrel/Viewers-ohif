@@ -67,11 +67,7 @@ export default function PanelMeasurement({
 
   useEffect(() => {
     const firstMeasurement =
-      prevMeasurementCount.current === 0 &&
-      displayMeasurements.length > 0 &&
-      !userHasSelected &&
-      referralData.length === 0 &&
-      circumstancesData.length === 0;
+      prevMeasurementCount.current === 0 && displayMeasurements.length > 0 && !userHasSelected;
 
     if (firstMeasurement) setModalOpen(true);
 
@@ -130,6 +126,8 @@ export default function PanelMeasurement({
             description: [],
             wnioski: [],
             rozpoznania: [],
+            circumstances: [],
+            referral: [],
           },
         });
       }
