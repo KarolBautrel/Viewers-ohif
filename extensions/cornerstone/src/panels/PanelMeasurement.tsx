@@ -3,84 +3,58 @@ import { utils } from '@ohif/core';
 import { MeasurementTable } from '@ohif/ui-next';
 import debounce from 'lodash.debounce';
 import { useMeasurements } from '../hooks/useMeasurements';
-import { DescribeTree } from '../../../../platform/ui-next/src/components/DescribeTree/index'; //zmienie sobie sciezke
-import { DescribeModal } from '../../../../platform/ui-next/src/components/DescribeModal/index'; //zmienie sobie sciezke
+import { DescribeTree } from '../../../../platform/ui-next/src/components/DescribeTree/index';
+import { DescribeModal } from '../../../../platform/ui-next/src/components/DescribeModal/index';
 import { MeasurementModal } from '../../../../platform/ui-next/src/components/DescribeModal/index';
 import { useBroadcastChannelSender } from '../hooks/useBroadcastChannelSender';
 import { ReferralDataSelector } from '../../../../platform/ui-next/src/components/ReferralDataSelector/index';
-
+import { useCornerstoneMeasurements } from '../hooks/useCornerStoneMeasurements';
+import { useViewerUrlParams } from '../hooks/useViewerUrlParams';
+import { OpenPatientReportButton } from '../../../../platform/ui-next/src/components/SupportButtons/SupportButtons';
+import { ShowReportJsonButton } from '../../../../platform/ui-next/src/components/SupportButtons/SupportButtons';
+import { useRisWindow } from '../hooks/useCheckRisWindow';
 const { filterAdditionalFindings: filterAdditionalFinding, filterAny } = utils.MeasurementFilters;
-
-export type withAppAndFilters = withAppTypes & {
-  measurementFilter: (item) => boolean;
-};
 
 export default function PanelMeasurement({
   servicesManager,
   commandsManager,
   customHeader,
   measurementFilter = filterAny,
-}: withAppAndFilters): React.ReactNode {
+}) {
   const measurementsPanelRef = useRef(null);
 
   const [referralData, setReferralData] = useState<string[]>([]);
-  const [circumstancesData, setCircumstancesData] = useState<Record<string,string>[]>([]);
+  const [circumstancesData, setCircumstancesData] = useState<Record<string, string>[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [showJSONModal, setShowJSONModal] = useState(false);
-
   const [describeMode, setDescribeMode] = useState<{ uid: string } | null>(null);
   const [userHasSelected, setUserHasSelected] = useState(false);
-  const [risId, setRisId] = useState<string | null>(null);
-  const [patientGender, setPatientGender] = useState<string|null>()
-  const [patientAge, setPatientAge] = useState<number|null>()
+
   const { measurementService } = servicesManager.services;
-  const displayMeasurements = useMeasurements(servicesManager, {
-    measurementFilter,
-  });
+  const displayMeasurements = useMeasurements(servicesManager, { measurementFilter });
 
   const handleWsMessage = useCallback(
     (data: any) => {
-      console.log('WS MESSAGE ', data);
       if (data?.action === 'DELETE' && typeof data.uid === 'string') {
         measurementService.remove(data.uid);
       }
     },
     [measurementService]
   );
+  const { descriptionId, studyId, patientGender, patientAge, refId } = useViewerUrlParams();
 
-
-  useEffect(() => {
-    const queryParams = new URLSearchParams(window.location.search);
-    const uid = queryParams.get('risID');
-    const gender = queryParams.get('patientGender')
-    const age = queryParams.get("patientAge")
-    setPatientGender(gender)
-    setPatientAge(age)
-    setRisId(uid);
-  }, []);
-
-    const { sendMessage } = useBroadcastChannelSender(
-    risId ? `radiology-channel-${risId}` : 'radiology-channel-default',
+  const { sendMessage } = useBroadcastChannelSender(
+    descriptionId ? `radiology-channel-${descriptionId}` : 'radiology-channel-default',
     handleWsMessage
   );
 
-  const handleRaportJson = () => {
-    setShowJSONModal(true);
-  };
   useEffect(() => {
     if (displayMeasurements) {
-      // Musze to przemyslec
-      // const recentlyDescribed = displayMeasurements.find(m => m.description?.localization);
-      // if (recentlyDescribed) {
       const jsonTest = JSON.stringify(displayMeasurements);
-      // console.log('PRzed wyslaniem', jsonTest);
-      sendMessage({
-        action: 'MEASUREMENT',
-        data: jsonTest,
-      });
-      // }
+      sendMessage({ action: 'MEASUREMENT', data: jsonTest });
     }
   }, [displayMeasurements, describeMode]);
+
   useEffect(() => {
     if (displayMeasurements.length > 0 && measurementsPanelRef.current) {
       debounce(() => {
@@ -89,29 +63,28 @@ export default function PanelMeasurement({
     }
   }, [displayMeasurements.length]);
 
-  // useEffect(() => {
-  //   if (!userHasSelected) {
-  //     setModalOpen(true);
-  //   }
-  // }, [userHasSelected]);
   const prevMeasurementCount = useRef(0);
 
   useEffect(() => {
     const firstMeasurement =
-      prevMeasurementCount.current === 0 && displayMeasurements.length > 0 && !userHasSelected;
+      prevMeasurementCount.current === 0 &&
+      displayMeasurements.length > 0 &&
+      !userHasSelected &&
+      referralData.length === 0 &&
+      circumstancesData.length === 0;
 
-    if (firstMeasurement) {
-      setModalOpen(true);
-    }
+    if (firstMeasurement) setModalOpen(true);
 
     prevMeasurementCount.current = displayMeasurements.length;
   }, [displayMeasurements.length, userHasSelected]);
-  const bindCommand = (name: string | string[], options?) => {
-    return (...args: any[]) => {
+
+  const bindCommand = (name, options?) => {
+    return (...args) => {
       const [uid, description] = args;
       commandsManager.run(name, { ...options, uid, description });
     };
   };
+  const checkRisWindow = useRisWindow();
 
   const jumpToImage = bindCommand('jumpToMeasurement', { displayMeasurements });
   const removeMeasurement = bindCommand('removeMeasurement');
@@ -121,6 +94,7 @@ export default function PanelMeasurement({
   const toggleLockMeasurement = bindCommand('toggleLockMeasurement');
   const toggleVisibilityMeasurement = bindCommand('toggleVisibilityMeasurement');
   const describeMeasurement = bindCommand('describeMeasurement');
+
   const additionalFilter = filterAdditionalFinding(measurementService);
 
   const measurements = displayMeasurements.filter(
@@ -146,8 +120,6 @@ export default function PanelMeasurement({
     setUserHasSelected(true);
   }
 
-  const hasAnyDescriptions = displayMeasurements.some(m => !!m.description);
-
   function clearAllDescriptions() {
     displayMeasurements.forEach(m => {
       if (m.description) {
@@ -163,23 +135,38 @@ export default function PanelMeasurement({
       }
     });
   }
+  const { referral, circumstances } = useCornerstoneMeasurements({
+    descriptionId,
+    studyId,
+    measurementService,
+  });
+
+  useEffect(() => {
+    setReferralData(referral);
+    setCircumstancesData(circumstances.map(w => ({ warunek: w })));
+  }, [referral, circumstances]);
+
   function handleOpenModalWithConfirm() {
-    if (hasAnyDescriptions) {
-      if (
-        window.confirm(
-          'Zmiana danych ze skierowania lub warunków spowoduje usunięcie wszystkich opisów pomiarów. Kontynuować?'
-        )
-      ) {
-        clearAllDescriptions();
-        setReferralData([]);
-        setCircumstancesData([]);
-        setUserHasSelected(false);
-        setModalOpen(true);
-      }
+    if (
+      displayMeasurements.some(m => !!m.description) &&
+      window.confirm(
+        'Zmiana danych ze skierowania lub warunków spowoduje usunięcie wszystkich opisów pomiarów. Kontynuować?'
+      )
+    ) {
+      clearAllDescriptions();
+      setReferralData([]);
+      setCircumstancesData([]);
+      setUserHasSelected(false);
+      setModalOpen(true);
     } else {
       setModalOpen(true);
     }
   }
+  useEffect(() => {
+    if (refId) {
+      checkRisWindow(refId);
+    }
+  }, [refId, checkRisWindow]);
   return (
     <>
       <DescribeModal
@@ -210,8 +197,8 @@ export default function PanelMeasurement({
               measurements={measurements}
               referralData={referralData}
               circumstancecData={circumstancesData}
-              patientAge = {patientAge}
-              patientGender = {patientGender}
+              patientAge={patientAge}
+              patientGender={patientGender}
             />
           </div>
         </div>
@@ -224,19 +211,12 @@ export default function PanelMeasurement({
           <ReferralDataSelector
             referralData={referralData}
             circumstancesData={circumstancesData}
-            // OLD: onOpenModal={() => setModalOpen(true)}
-            // NEW:
             onOpenModal={handleOpenModalWithConfirm}
           />
-          <div className="flex justify-end px-2">
-            <button
-              className="rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600"
-              onClick={handleRaportJson}
-            >
-              Wyswietl json z raportem
-            </button>
+          <div className="my-2 flex justify-end gap-2 px-2">
+            <OpenPatientReportButton refId={refId} />
+            <ShowReportJsonButton onClick={() => setShowJSONModal(true)} />
           </div>
-
           <MeasurementTable
             key="tracked"
             title="Measurements"
@@ -244,16 +224,10 @@ export default function PanelMeasurement({
             {...onArgs}
           >
             <MeasurementTable.Header>
-              {customHeader && (
-                <>
-                  {typeof customHeader === 'function'
-                    ? customHeader({
-                        additionalFindings,
-                        measurements,
-                      })
-                    : customHeader}
-                </>
-              )}
+              {customHeader &&
+                (typeof customHeader === 'function'
+                  ? customHeader({ additionalFindings, measurements })
+                  : customHeader)}
             </MeasurementTable.Header>
             <MeasurementTable.Body />
           </MeasurementTable>
@@ -272,4 +246,3 @@ export default function PanelMeasurement({
     </>
   );
 }
-

@@ -11,7 +11,6 @@ export function useBroadcastChannelSender(
     channel.current = new BroadcastChannel(channelName);
 
     channel.current.onmessage = event => {
-      console.log('MESSAGE', event);
       onMessage?.(event);
     };
 
@@ -21,9 +20,7 @@ export function useBroadcastChannelSender(
   }, [channelName, onMessage]);
 
   const sendMessage = useCallback((data: any) => {
-    console.log(channel.current);
     if (channel.current) {
-      console.log('Wysłano wiadomość do kanału:', data);
       channel.current.postMessage(data);
     } else {
       console.warn('Kanał BroadcastChannel nie jest dostępny');
