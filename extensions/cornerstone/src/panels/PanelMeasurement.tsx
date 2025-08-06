@@ -158,7 +158,7 @@ export default function PanelMeasurement({
       setUserHasSelected(false);
       setModalOpen(true);
     } else {
-      setModalOpen(true);
+      setModalOpen(false);
     }
   }
   useEffect(() => {
