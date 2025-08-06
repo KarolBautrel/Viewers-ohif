@@ -459,6 +459,58 @@ class MeasurementService extends PubSubService {
   }
 
   /**
+   * Adds a list of fully-formed measurements (e.g. fetched from backend)
+   * directly into the measurement store without mapping.
+   * Assumes each measurement already has all required fields.
+   *
+   * @param {Array<Object>} measurements List of fully-formed measurements
+   * @returns {string[]} List of UIDs of added measurements
+   */
+  public addMeasurementsFromJSON(measurements: any[]): string[] {
+    if (!Array.isArray(measurements)) {
+      console.warn('addMeasurementsFromJSON expects an array.');
+      return [];
+    }
+
+    const addedUIDs: string[] = [];
+
+    for (const measurement of measurements) {
+      const { uid, source } = measurement;
+
+      if (!uid || !source) {
+        console.warn('Measurement missing uid or source:', measurement);
+        continue;
+      }
+
+      if (!this._isValidSource(source)) {
+        this.sources[source.uid] = source; // Auto-register if needed
+        log.info(`Auto-registered measurement source ${source.name}@${source.version}`);
+      }
+
+      if (!this._isValidMeasurement(measurement)) {
+        console.warn('Invalid measurement structure:', measurement);
+        continue;
+      }
+
+      const newMeasurement = {
+        ...measurement,
+        modifiedTimestamp: Math.floor(Date.now() / 1000),
+      };
+
+      this.measurements.set(uid, newMeasurement);
+
+      this._broadcastEvent(this.EVENTS.MEASUREMENT_ADDED, {
+        source,
+        measurement: newMeasurement,
+      });
+
+      addedUIDs.push(uid);
+    }
+
+    return addedUIDs;
+  }
+
+  /**
    * Adds or update persisted measurements.
    *
    * @param {MeasurementSource} source The measurement source instance
@@ -589,39 +641,37 @@ class MeasurementService extends PubSubService {
     });
   }
 
-/**
- * Adds (or updates) description for a given measurementUID.
- */
- public addDescription(measurementUID: string, description: Record<string,string>): void {
+  /**
+   * Adds (or updates) description for a given measurementUID.
+   */
+  public addDescription(measurementUID: string, description: Record<string, string>): void {
+    const measurement =
+      this.measurements.get(measurementUID) || this.unmappedMeasurements.get(measurementUID);
 
-  const measurement =
-    this.measurements.get(measurementUID) || this.unmappedMeasurements.get(measurementUID);
+    if (!measurementUID || !measurement) {
+      console.debug(`No uid provided, or unable to find measurement by uid.`);
+      return;
+    }
 
-  if (!measurementUID || !measurement) {
-    console.debug(`No uid provided, or unable to find measurement by uid.`);
-    return;
+    const updatedMeasurement = {
+      ...measurement,
+      description,
+      modifiedTimestamp: Math.floor(Date.now() / 1000),
+    };
+
+    this.measurements.set(measurementUID, updatedMeasurement);
+
+    this._broadcastEvent(this.EVENTS.MEASUREMENT_UPDATED, {
+      source: updatedMeasurement.source,
+      measurement: updatedMeasurement,
+      notYetUpdatedAtSource: false,
+    });
+
+    console.log(
+      `Measurement ${measurementUID} updated with new description: `,
+      updatedMeasurement.description
+    );
   }
-
-  const updatedMeasurement = {
-    ...measurement,
-    description,
-    modifiedTimestamp: Math.floor(Date.now() / 1000),
-  };
-
-  this.measurements.set(measurementUID, updatedMeasurement);
-
-  this._broadcastEvent(this.EVENTS.MEASUREMENT_UPDATED, {
-    source: updatedMeasurement.source,
-    measurement: updatedMeasurement,
-    notYetUpdatedAtSource: false,
-  });
-
-  console.log(
-    `Measurement ${measurementUID} updated with new description: `,
-    updatedMeasurement.description,
-  );
-}
-
 
   /**
    * Clears measurements that match the filter, defaulting to all of them.

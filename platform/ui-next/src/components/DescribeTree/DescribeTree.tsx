@@ -15,7 +15,7 @@ export default function DescribeTree({
   referralData,
   circumstancecData,
   patientAge,
-  patientGender
+  patientGender,
 }: {
   onSelect: (desc: Record<string, any>) => void;
   onCancel: () => void;
@@ -23,8 +23,8 @@ export default function DescribeTree({
   uid: string;
   referralData: string[];
   circumstancecData: Record<string, string>[];
-  patientAge: number;
-  patientGender:string
+  patientAge: string;
+  patientGender: string;
 }) {
   const [step, setStep] = useState<Step>(Step.Locations);
   const [featureData, setFeatureData] = useState<CechaNode[] | null>(null);
@@ -114,7 +114,7 @@ export default function DescribeTree({
         displayUnit = 'mm';
         unitDimension = null;
       }
-    } else if (['CircleROI', 'PlanarFreehandROI'].includes(currentMeasurement.toolName)) {
+    } else {
       const d = currentMeasurement.data?.[Object.keys(currentMeasurement.data)[0]];
       if (d?.area) {
         displayValue = d.area.toFixed(1);
@@ -138,7 +138,7 @@ export default function DescribeTree({
         unitDimension,
         referralData,
         patientAge,
-        patientGender
+        patientGender,
       });
 
       setFeatureData(data);
@@ -179,8 +179,6 @@ export default function DescribeTree({
   }
 
   function handleLocalizationDone(selectedPath: any) {
-    console.log('handleLocalizationDone: selectedPath', JSON.stringify(selectedPath, null, 2));
-
     const recon = findReconFromLocalization(
       selectedPath,
       currentMeasurement?.description?.recon_from_localization || []
@@ -210,7 +208,7 @@ export default function DescribeTree({
     { features = [], conclusions = [], diagnoses = [] } = {},
     virtualDescriptions = []
   ) {
-    const byUuid: Record<string, DescriptionItem>  = {};
+    const byUuid: Record<string, DescriptionItem> = {};
     for (const d of [...features, ...conclusions, ...diagnoses, ...virtualDescriptions]) {
       const key = d.uuid || d.name;
       if (!byUuid[key]) byUuid[key] = { ...d, weight: d.weight || 1 };

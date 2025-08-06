@@ -9,13 +9,6 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
   const [selectedNodes, setSelectedNodes] = useState<any[]>([]);
 
   function toggleSelect(node: any, parent: any) {
-    console.log('toggleSelect:', {
-      node: node.name,
-      uuid: node.uuid,
-      parent: parent.name,
-      parentUuid: parent.uuid,
-    });
-
     const exists = selectedNodes.find(
       n => n.node.uuid === node.uuid && n.parentUuid === parent.uuid
     );
@@ -29,16 +22,8 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
   }
 
   function mergeChildIntoTree(baseTree, parentUuid, childNode, depth = 0) {
-    console.log(
-      ' '.repeat(depth * 2) +
-        `[depth ${depth}] SZUKAM parentUuid: ${parentUuid} w [${baseTree.map(n => n.name + ' (' + n.uuid + ')').join(', ')}]`
-    );
     return baseTree.map(node => {
       if (node.uuid === parentUuid) {
-        console.log(
-          ' '.repeat(depth * 2) +
-            `[depth ${depth}] ==> ZNALAZŁEM parenta: ${node.name} (${node.uuid}), dodaję dziecko: ${childNode.name} (${childNode.uuid})`
-        );
         const existingChild = (node.children_lokalizacja || []).find(
           c => c.uuid === childNode.uuid
         );
