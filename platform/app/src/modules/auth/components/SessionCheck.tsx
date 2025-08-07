@@ -1,10 +1,10 @@
-import { type ReactNode, useEffect, useState } from 'react';
+import React, { type ReactNode, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
 import useAuthMutation from '../hooks/useAuthMutations';
 import useAuthStore from '../store/useAuthStore';
 import type { AuthorizationResponse } from '../types';
-import React from 'react';
 import { Roles } from '../consts';
-import { useTranslation } from 'react-i18next';
 
 interface SessionCheckProps {
   children: ReactNode;
@@ -13,23 +13,17 @@ interface SessionCheckProps {
 export const SessionCheck: React.FC<SessionCheckProps> = ({ children }) => {
   const { fetchSession } = useAuthMutation();
   const { login, logout } = useAuthStore();
+  const { t } = useTranslation('AuthSession');
 
   const [isAllowed, setIsAllowed] = useState<boolean | null>(null); // null = loading
-  const { t } = useTranslation('AuthSession');
 
   const loginUser = (response: AuthorizationResponse) => {
     const { meta, data } = response;
     const { is_authenticated } = meta;
 
-    if (!is_authenticated) {
-      setIsAllowed(false);
+    if (!is_authenticated || data.user.role !== Roles.RADIOLOGIST) {
       logout(response);
-      return;
-    }
-
-    if (data.user.role !== Roles.RADIOLOGIST) {
       setIsAllowed(false);
-      logout(response);
       return;
     }
 
@@ -55,18 +49,15 @@ export const SessionCheck: React.FC<SessionCheckProps> = ({ children }) => {
     void checkSession();
   }, []);
 
-  // Loading state
-  if (fetchSession.isPending || isAllowed === null) {
-    return <div style={{ padding: 20, color: 'blue' }}>🔄 Checking session...</div>;
-  }
-
-  // Not allowed
-  if (!isAllowed) {
+  if (isAllowed === false) {
     return (
-      <div style={{ padding: 40, color: 'red', fontSize: 18 }}>
-        {t('sessionErrorHeader')}
-        <br />
-        {t('sessionErrorBody')}
+      <div className="bg-background flex min-h-screen items-center justify-center px-4">
+        <div className="border-border bg-card w-full max-w-md rounded-lg border p-8 text-center shadow-md">
+          <h2 className="text-destructive mb-4 text-2xl font-semibold">
+            {t('sessionErrorHeader')}
+          </h2>
+          <p className="text-muted-foreground mb-6 text-sm">{t('sessionErrorBody')}</p>
+        </div>
       </div>
     );
   }

@@ -61,7 +61,7 @@
   "autocomplete.placeholder": "Wpisz lub wybierz...",
   "autocomplete.noResults": "Brak wyników",
   "loading": "Ładowanie...",
-  "supportButtons.moveToPatientPanel": "Przejdz do panelu pacjenta",
+  "supportButtons.moveToPatientPanel": "Wyswietl okno opisu",
   "supportButtons.showJsonMeasurement": "Wyświetl JSON z raportem",
   "dataRow.dropDownIcons.Rename": "Zmien nazwe",
   "dataRow.dropDownIcons.Delete": "Usun",

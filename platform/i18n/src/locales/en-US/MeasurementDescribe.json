@@ -61,7 +61,7 @@
   "multiSelect.noResults": "No results",
   "autocomplete.placeholder": "Type or select...",
   "autocomplete.noResults": "No results",
-  "supportButtons.moveToPatientPanel": "Move to the patient panel",
+  "supportButtons.moveToPatientPanel": "Show Measurement Window",
   "supportButtons.showJsonMeasurement": "Show JSON report",
   "dataRow.dropDownIcons.Rename": "Rename",
   "dataRow.dropDownIcons.Delete": "Delete",
