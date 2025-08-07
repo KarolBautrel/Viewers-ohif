@@ -14,6 +14,7 @@ import { OpenPatientReportButton } from '../../../../platform/ui-next/src/compon
 import { ShowReportJsonButton } from '../../../../platform/ui-next/src/components/SupportButtons/SupportButtons';
 import { useRisWindow } from '../hooks/useCheckRisWindow';
 import { useTranslation } from 'react-i18next';
+import { sendMeasurements } from '../utils/sendMeasurementsToBackend';
 
 const { filterAdditionalFindings: filterAdditionalFinding, filterAny } = utils.MeasurementFilters;
 
@@ -54,6 +55,11 @@ export default function PanelMeasurement({
     if (displayMeasurements) {
       const jsonTest = JSON.stringify(displayMeasurements);
       sendMessage({ action: 'MEASUREMENT', data: jsonTest });
+      sendMeasurements({
+        referralId: refId,
+        descriptionId,
+        measurements: displayMeasurements,
+      });
     }
   }, [displayMeasurements, describeMode]);
 
