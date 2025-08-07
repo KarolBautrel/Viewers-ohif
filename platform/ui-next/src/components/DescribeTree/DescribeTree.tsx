@@ -116,7 +116,7 @@ export default function DescribeTree({
         displayUnit = 'mm';
         unitDimension = null;
       }
-    } else if (['CircleROI', 'PlanarFreehandROI'].includes(currentMeasurement.toolName)) {
+    } else {
       const d = currentMeasurement.data?.[Object.keys(currentMeasurement.data)[0]];
       if (d?.area) {
         displayValue = d.area.toFixed(1);
@@ -181,8 +181,6 @@ export default function DescribeTree({
   }
 
   function handleLocalizationDone(selectedPath: any) {
-    console.log('handleLocalizationDone: selectedPath', JSON.stringify(selectedPath, null, 2));
-
     const recon = findReconFromLocalization(
       selectedPath,
       currentMeasurement?.description?.recon_from_localization || []
