@@ -9,7 +9,7 @@ import {
 import { Icons } from '../../components/Icons/Icons';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../../components/Tooltip/Tooltip';
 import { MeasurementDescriptionDetails } from '../DescribeTree/components/MeasurementDescriptionDetails';
-
+import { useTranslation } from 'react-i18next';
 interface DataRowProps {
   key: string;
   number: number;
@@ -56,6 +56,7 @@ const DataRow: React.FC<DataRowProps> = ({
   const [collapsed, setCollapsed] = useState(false);
   const isTitleLong = title?.length > 25;
   const rowRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation('MeasurementDescribe');
 
   // Akcje menu
   const handleAction = (action: string, e: React.MouseEvent) => {
@@ -229,7 +230,7 @@ const DataRow: React.FC<DataRowProps> = ({
               }}
             >
               <Icons.Info className="h-5 w-5" />
-              <span className="text-sm font-medium">Describe</span>
+              <span className="text-sm font-medium">{t('dataRow.Describe')}</span>
             </Button>
           )}
           {isLocked && !disableEditing && <Icons.Lock className="text-muted-foreground h-6 w-6" />}
@@ -253,21 +254,25 @@ const DataRow: React.FC<DataRowProps> = ({
               >
                 <DropdownMenuItem onClick={e => handleAction('Rename', e)}>
                   <Icons.Rename className="text-foreground" />
-                  <span className="pl-2">Rename</span>
+                  <span className="pl-2">{t('dataRow.dropDownIcons.Rename')}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={e => handleAction('Delete', e)}>
                   <Icons.Delete className="text-foreground" />
-                  <span className="pl-2">Delete</span>
+                  <span className="pl-2">{t('dataRow.dropDownIcons.Delete')}</span>
                 </DropdownMenuItem>
                 {onColor && (
                   <DropdownMenuItem onClick={e => handleAction('Color', e)}>
                     <Icons.ColorChange className="text-foreground" />
-                    <span className="pl-2">Change Color</span>
+                    <span className="pl-2">{t('dataRow.dropDownIcons.ChangeColor')}</span>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem onClick={e => handleAction('Lock', e)}>
                   <Icons.Lock className="text-foreground" />
-                  <span className="pl-2">{isLocked ? 'Unlock' : 'Lock'}</span>
+                  <span className="pl-2">
+                    {isLocked
+                      ? t('dataRow.dropDownIcons.UnlockIcon')
+                      : t('dataRow.dropDownIcons.LockIcon')}
+                  </span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -13,6 +13,8 @@ import { useViewerUrlParams } from '../hooks/useViewerUrlParams';
 import { OpenPatientReportButton } from '../../../../platform/ui-next/src/components/SupportButtons/SupportButtons';
 import { ShowReportJsonButton } from '../../../../platform/ui-next/src/components/SupportButtons/SupportButtons';
 import { useRisWindow } from '../hooks/useCheckRisWindow';
+import { useTranslation } from 'react-i18next';
+
 const { filterAdditionalFindings: filterAdditionalFinding, filterAny } = utils.MeasurementFilters;
 
 export default function PanelMeasurement({
@@ -31,6 +33,7 @@ export default function PanelMeasurement({
   const [userHasSelected, setUserHasSelected] = useState(false);
   const { measurementService } = servicesManager.services;
   const displayMeasurements = useMeasurements(servicesManager, { measurementFilter });
+  const { t } = useTranslation('MeasurementDescribe');
 
   const handleWsMessage = useCallback(
     (data: any) => {
@@ -147,9 +150,7 @@ export default function PanelMeasurement({
   function handleOpenModalWithConfirm() {
     if (
       displayMeasurements.some(m => !!m.description) &&
-      window.confirm(
-        'Zmiana danych ze skierowania lub warunków spowoduje usunięcie wszystkich opisów pomiarów. Kontynuować?'
-      )
+      window.confirm(t('describeModal.modifyAlertMessage'))
     ) {
       clearAllDescriptions();
       setReferralData([]);

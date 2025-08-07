@@ -21,6 +21,8 @@ import UserPreferencesModal from './UserPreferencesModal.json';
 import ViewportDownloadForm from './ViewportDownloadForm.json';
 import Messages from './Messages.json';
 import WindowLevelActionMenu from './WindowLevelActionMenu.json';
+import MeasurementDescribe from './MeasurementDescribe.json';
+import AuthSession from './AuthSession.json';
 
 export default {
   'en-US': {
@@ -47,5 +49,7 @@ export default {
     ViewportDownloadForm,
     Messages,
     WindowLevelActionMenu,
+    MeasurementDescribe,
+    AuthSession,
   },
 };

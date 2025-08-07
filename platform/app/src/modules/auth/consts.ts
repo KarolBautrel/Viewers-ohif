@@ -1,4 +1,3 @@
-
 export enum URLs {
   LOGIN_URL = '/login/',
   LOGIN_REDIRECT_URL = '/',
@@ -11,4 +10,5 @@ export enum Roles {
   RECEPTIONIST = 'receptionist',
 }
 
+// export const API_URL = 'http://localhost:8001';
 export const API_URL = 'https://ohif.bbbit.io/app';

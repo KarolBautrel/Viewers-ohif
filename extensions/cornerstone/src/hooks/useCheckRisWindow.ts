@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 export function useRisWindow() {
   const checkRisWindow = useCallback(refId => {
     const windowName = `ris-${refId}`;
-    const url = `/ne/dashboard/referrals/${refId}/description/`;
+    const url = `/dashboard/referrals/${refId}/description/?tab=gaph`;
     const windowFeatures = 'noopener,noreferrer,width=1200,height=800';
 
     let existingWindow = window.open('', windowName);
