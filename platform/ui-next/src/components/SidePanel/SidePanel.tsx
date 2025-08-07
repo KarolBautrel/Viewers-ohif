@@ -438,7 +438,6 @@ const SidePanel = ({
         onClick={() => updatePanelOpen(!panelOpen)}
       >
         {getCloseIcon()}
-        <span>{tabs[0].label}</span>
       </div>
     );
   };

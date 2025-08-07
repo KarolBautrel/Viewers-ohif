@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
+  const { t } = useTranslation('MeasurementDescribe');
+
   const [pathStack, setPathStack] = useState([]);
   const [currentLevel, setCurrentLevel] = useState([
     { parentNode: data[0], childNodes: data[0].children_cecha || [] },
@@ -188,12 +191,12 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="flex flex-row items-center gap-2">
-        <span className="text-lg font-semibold text-[#C9C9C9]">Wybierz cechy</span>
+        <span className="text-lg font-semibold text-[#C9C9C9]">{t('features.title')}</span>
         <button
           className="ml-auto rounded bg-[#23274a] px-3 py-1 text-xs text-white hover:bg-[#2f335d]"
           onClick={handleBack}
         >
-          {pathStack.length === 0 ? 'Wyjdź' : 'Wróć'}
+          {pathStack.length === 0 ? t('features.exit') : t('features.back')}
         </button>
       </div>
 
@@ -202,7 +205,9 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
           key={parentNode.uuid}
           className="mb-4"
         >
-          <div className="mb-1 text-xs text-[#C9C9C9]">Cechy pochodzące od: {parentNode.name}</div>
+          <div className="mb-1 text-xs text-[#C9C9C9]">
+            {t('features.originFrom', { parent: parentNode.name })}
+          </div>
           <div className="flex flex-col gap-2">
             {childNodes
               .filter(child => isUuidInGating(child))
@@ -218,7 +223,7 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
                     }`}
                     onClick={() => toggleSelect(child, parentNode)}
                   >
-                    {child.name} (od: {parentNode.name})
+                    {child.name} ({t('features.originFrom', { parent: parentNode.name })})
                   </button>
                 );
               })}
@@ -229,7 +234,9 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
         <div className="mt-2 flex flex-col gap-3">
           {allConclusions.length > 0 && (
             <div>
-              <div className="mb-1 text-xs font-semibold text-pink-300">Wnioski</div>
+              <div className="mb-1 text-xs font-semibold text-pink-300">
+                {t('features.conclusions')}
+              </div>
               <div className="flex flex-col gap-1">
                 {allConclusions.map(c => (
                   <div
@@ -237,7 +244,9 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
                     className="flex items-center rounded bg-pink-900/50 px-3 py-1 text-xs font-medium text-pink-100"
                   >
                     <span>{c.name}</span>
-                    <span className="ml-2 text-pink-300 opacity-70">(waga: {c.weight})</span>
+                    <span className="ml-2 text-pink-300 opacity-70">
+                      ({t('features.weight', { weight: c.weight })})
+                    </span>
                   </div>
                 ))}
               </div>
@@ -246,7 +255,9 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
 
           {allDiagnoses.length > 0 && (
             <div>
-              <div className="mb-1 text-xs font-semibold text-[#eeb980]">Rozpoznania różnicowe</div>
+              <div className="mb-1 text-xs font-semibold text-[#eeb980]">
+                {t('features.differentialDiagnoses')}
+              </div>
               <div className="flex flex-col gap-1">
                 {allDiagnoses.map(d => (
                   <div
@@ -254,7 +265,9 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
                     className="flex items-center rounded bg-[#653828]/80 px-3 py-1 text-xs font-medium text-[#eeb980]"
                   >
                     <span>{d.name}</span>
-                    <span className="ml-2 opacity-80">(waga: {d.weight})</span>
+                    <span className="ml-2 opacity-80">
+                      ({t('features.weight', { weight: d.weight })})
+                    </span>
                   </div>
                 ))}
               </div>
@@ -266,7 +279,9 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
         <>
           {suggestionsIfNoSelection.conclusions.length > 0 && (
             <div>
-              <div className="mb-1 text-xs font-semibold text-pink-300">Wnioski</div>
+              <div className="mb-1 text-xs font-semibold text-pink-300">
+                {t('features.conclusions')}
+              </div>
               <div className="flex flex-col gap-1">
                 {suggestionsIfNoSelection.conclusions.map(c => (
                   <div
@@ -274,7 +289,9 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
                     className="flex items-center rounded bg-pink-900/50 px-3 py-1 text-xs font-medium text-pink-100"
                   >
                     <span>{c.name}</span>
-                    <span className="ml-2 text-pink-300 opacity-70">(waga: {c.weight})</span>
+                    <span className="ml-2 text-pink-300 opacity-70">
+                      ({t('features.weight', { weight: c.weight })})
+                    </span>
                   </div>
                 ))}
               </div>
@@ -283,7 +300,9 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
 
           {suggestionsIfNoSelection.diagnoses.length > 0 && (
             <div>
-              <div className="mb-1 text-xs font-semibold text-[#eeb980]">Rozpoznania różnicowe</div>
+              <div className="mb-1 text-xs font-semibold text-[#eeb980]">
+                {t('features.differentialDiagnoses')}
+              </div>
               <div className="flex flex-col gap-1">
                 {suggestionsIfNoSelection.diagnoses.map(d => (
                   <div
@@ -291,7 +310,9 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
                     className="flex items-center rounded bg-[#653828]/80 px-3 py-1 text-xs font-medium text-[#eeb980]"
                   >
                     <span>{d.name}</span>
-                    <span className="ml-2 opacity-80">(waga: {d.weight})</span>
+                    <span className="ml-2 opacity-80">
+                      ({t('features.weight', { weight: d.weight })})
+                    </span>
                   </div>
                 ))}
               </div>
@@ -299,7 +320,7 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
           )}
 
           <div className="mt-2 text-xs text-[#C9C9C9] opacity-80">
-            Brak cech do wyboru dla tego objawu. Możesz zakończyć wybór.
+            {t('features.noFeaturesAvailable')}
           </div>
 
           <button
@@ -320,7 +341,7 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
               });
             }}
           >
-            Zakończ wybór
+            {t('features.finish')}
           </button>
         </>
       )}
@@ -332,7 +353,7 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
               className="mt-4 w-full rounded bg-[#348CFD] py-2 font-bold text-white hover:bg-[#225BA4]"
               onClick={handleNextLevel}
             >
-              Dalej
+              {t('features.next')}
             </button>
           )}
 
@@ -340,7 +361,7 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
             className="mt-2 w-full rounded bg-green-700 py-2 text-white"
             onClick={handleFinish}
           >
-            Zakończ wybór
+            {t('features.finish')}
           </button>
         </div>
       )}
@@ -349,7 +370,7 @@ export default function FeatureTree({ data, onDone, onBack, gatingUuids }) {
         className="mt-3 w-full rounded bg-[#23274a] py-2 text-xs text-[#C9C9C9]"
         onClick={handleReset}
       >
-        Reset
+        {t('features.reset')}
       </button>
     </div>
   );

@@ -1,0 +1,8 @@
+{
+  "Next image": "$t(Common:Następny) $t(Common:Obraz)",
+  "Play / Stop": "$t(Common:Odtwórz) / $t(Common:Zatrzymaj)",
+  "Previous image": "$t(Common:Poprzedni) $t(Common:Obraz)",
+  "Skip to first image": "Przejdź do pierwszego $t(Common:Obraz)",
+  "Skip to last image": "Przejdź do ostatniego $t(Common:Obraz)",
+  "fps": "kl./s"
+}

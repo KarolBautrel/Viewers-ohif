@@ -4,7 +4,7 @@ import { useViewportGrid } from '@ohif/ui-next';
 import { Button, Icons } from '@ohif/ui-next';
 import { PanelMeasurement, StudySummaryFromMetadata } from '@ohif/extension-cornerstone';
 import { useTrackedMeasurements } from '../getContextModule';
-
+import { useTranslation } from 'react-i18next';
 const { filterAnd, filterPlanarMeasurement, filterMeasurementsBySeriesUID } =
   utils.MeasurementFilters;
 
@@ -22,6 +22,7 @@ function PanelMeasurementTableTracking({
     : filterPlanarMeasurement;
 
   const disableEditing = customizationService.getCustomization('panelMeasurement.disableEditing');
+  const { t } = useTranslation('MeasurementDescribe');
 
   return (
     <>
@@ -77,7 +78,7 @@ function PanelMeasurementTableTracking({
                   }}
                 >
                   <Icons.Delete />
-                  Delete All
+                  {t('panelMeasurement.DeleteAllIcon')}
                 </Button>
               </div>
             </div>

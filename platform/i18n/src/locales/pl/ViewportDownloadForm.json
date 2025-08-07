@@ -1,0 +1,14 @@
+{
+  "emptyFilenameError": "Nazwa pliku nie może być pusta.",
+  "fileType": "Typ pliku",
+  "filename": "Nazwa pliku",
+  "formTitle": "Podaj wymiary, nazwę pliku oraz żądany typ dla obrazu wyjściowego.",
+  "imageHeight": "Wysokość obrazu (px)",
+  "imagePreview": "Podgląd obrazu",
+  "imageWidth": "Szerokość obrazu (px)",
+  "keepAspectRatio": "Zachowaj proporcje",
+  "loadingPreview": "Ładowanie podglądu obrazu...",
+  "minHeightError": "Minimalna dozwolona wysokość to 100px.",
+  "minWidthError": "Minimalna dozwolona szerokość to 100px.",
+  "showAnnotations": "Pokaż adnotacje"
+}
