@@ -3,6 +3,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import MultiSelect from '../MultiSelect/MultiSelect';
 import { fetchReferralOptions, fetchConditions } from '../../apiService/api';
+import { useTranslation } from 'react-i18next';
 
 interface DescribeModalProps {
   isOpen: boolean;
@@ -17,6 +18,8 @@ const DescribeModal: React.FC<DescribeModalProps> = ({
   onDescribe,
   forceModal = false,
 }) => {
+  const { t } = useTranslation('MeasurementDescribe');
+
   const [skierowanie, setSkierowanie] = useState<string[]>([]);
   const [referralOptions, setReferralOptions] = useState<string[]>([]);
   const [loadingReferrals, setLoadingReferrals] = useState(false);
@@ -34,7 +37,7 @@ const DescribeModal: React.FC<DescribeModalProps> = ({
         const names = await fetchReferralOptions();
         setReferralOptions(names);
       } catch (error) {
-        alert('Błąd podczas pobierania danych ze skierowania.');
+        alert(t('descriptionModal.errorReferrals'));
         console.error(error);
       } finally {
         setLoadingReferrals(false);
@@ -47,7 +50,7 @@ const DescribeModal: React.FC<DescribeModalProps> = ({
         const conds = await fetchConditions();
         setConditionOptions(conds);
       } catch (err) {
-        alert('Błąd podczas pobierania warunków.');
+        alert(t('descriptionModal.errorConditions'));
         setConditionOptions([]);
       } finally {
         setLoadingConditions(false);
@@ -56,9 +59,8 @@ const DescribeModal: React.FC<DescribeModalProps> = ({
 
     loadReferrals();
     loadConditions();
-  }, [isOpen]);
+  }, [isOpen, t]);
 
-  // MultiSelect warunki: operujemy na stringach, ale stan to obiekty
   function handleConditionsChange(selectedNames: string[]) {
     const selectedObjects = conditionOptions.filter(opt => selectedNames.includes(opt.warunek));
     setSelectedConditions(selectedObjects);
@@ -95,13 +97,13 @@ const DescribeModal: React.FC<DescribeModalProps> = ({
         >
           <div className="mb-1 flex items-center justify-between">
             <Dialog.Title className="text-xl font-bold tracking-tight text-white">
-              Dane wyjściowe
+              {t('descriptionModal.title')}
             </Dialog.Title>
             {!forceModal && (
               <Dialog.Close asChild>
                 <button
                   className="rounded p-1 transition hover:bg-white/10"
-                  aria-label="Zamknij"
+                  aria-label={t('descriptionModal.close')}
                 >
                   <X
                     size={22}
@@ -112,20 +114,20 @@ const DescribeModal: React.FC<DescribeModalProps> = ({
             )}
           </div>
           <Dialog.Description className="mb-1 text-base text-gray-400">
-            Podaj dane ze skierowania oraz warunki badania.
+            {t('descriptionModal.descriptionLine1')}
             <br />
-            <span className="text-sm text-gray-300">
-              Mają wpływ na rozpoznanie i cechy pomiarów.
-            </span>
+            <span className="text-sm text-gray-300">{t('descriptionModal.descriptionLine2')}</span>
           </Dialog.Description>
 
           <div className="space-y-4">
             <section>
               <label className="mb-2 block text-sm font-semibold text-white">
-                Dane ze skierowania
+                {t('descriptionModal.referralLabel')}
               </label>
               {loadingReferrals ? (
-                <div className="text-sm text-gray-400">Ładowanie danych...</div>
+                <div className="text-sm text-gray-400">
+                  {t('descriptionModal.loadingReferrals')}
+                </div>
               ) : (
                 <MultiSelect
                   options={referralOptions}
@@ -136,9 +138,13 @@ const DescribeModal: React.FC<DescribeModalProps> = ({
             </section>
 
             <section>
-              <label className="mb-2 block text-sm font-semibold text-white">Warunki badania</label>
+              <label className="mb-2 block text-sm font-semibold text-white">
+                {t('descriptionModal.conditionsLabel')}
+              </label>
               {loadingConditions ? (
-                <div className="text-sm text-gray-400">Ładowanie warunków...</div>
+                <div className="text-sm text-gray-400">
+                  {t('descriptionModal.loadingConditions')}
+                </div>
               ) : (
                 <MultiSelect
                   options={conditionOptions.map(opt => opt.warunek)}
@@ -157,14 +163,14 @@ const DescribeModal: React.FC<DescribeModalProps> = ({
               onClick={handleClear}
               type="button"
             >
-              Wyczyść
+              {t('descriptionModal.clear')}
             </button>
             <button
               className="rounded-xl bg-[#234178] px-6 py-2 text-base font-semibold text-white shadow transition hover:bg-[#2e529b]"
               onClick={handleSubmit}
               type="button"
             >
-              Wybierz
+              {t('descriptionModal.select')}
             </button>
           </div>
         </Dialog.Content>

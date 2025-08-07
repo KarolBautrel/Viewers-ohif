@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function LocationTree({ data, onDone, onBack, onFinish }) {
+  const { t } = useTranslation('MeasurementDescribe');
+
   const [pathStack, setPathStack] = useState<any[]>([]);
   const [currentLevel, setCurrentLevel] = useState([
     { parentNode: data[0], childNodes: data[0].children_lokalizacja || [] },
@@ -50,6 +53,7 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
       return node;
     });
   }
+
   function findNodeByUuid(tree, uuid) {
     for (const node of tree) {
       if (node.uuid === uuid) return node;
@@ -63,10 +67,7 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
 
   function handleNextLevel() {
     let updatedTree = [...tree];
-    console.log('--- handleNextLevel ---');
-
     selectedNodes.forEach(({ node, parentUuid }) => {
-      console.log('Trying to attach:', node.name, node.uuid, 'to parentUuid:', parentUuid);
       if (tree.find(t => t.name === node.uuid)) return;
 
       const existsInTree = findNodeByUuid(updatedTree, parentUuid);
@@ -76,9 +77,6 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
         updatedTree.push({ ...node, children_lokalizacja: [] });
       }
     });
-    console.log('updatedTree after handleNextLevel:', JSON.stringify(updatedTree, null, 2));
-    // console.log('handleNextLevel: selectedNodes', selectedNodes);
-    // console.log('handleNextLevel: pathStack', pathStack);
     const nextLevel = selectedNodes
       .flatMap(entry => ({
         parentNode: entry.node,
@@ -121,7 +119,6 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
         updatedTree.push({ ...node, children_lokalizacja: [] });
       }
     });
-    console.log('handleFinish: updatedTree', JSON.stringify(updatedTree, null, 2));
     onFinish(updatedTree);
   }
 
@@ -134,12 +131,12 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="flex flex-row items-center gap-2">
-        <span className="text-lg font-semibold text-[#C9C9C9]">Lokalizacja ROI</span>
+        <span className="text-lg font-semibold text-[#C9C9C9]">{t('locationTree.title')}</span>
         <button
           className="ml-auto rounded bg-[#23274a] px-3 py-1 text-xs text-white hover:bg-[#2f335d]"
           onClick={handleBack}
         >
-          {pathStack.length === 0 ? 'Wyjdź' : 'Wróć'}
+          {pathStack.length === 0 ? t('locationTree.exit') : t('locationTree.back')}
         </button>
       </div>
 
@@ -162,7 +159,7 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
           className="mb-4"
         >
           <div className="mb-1 text-xs text-[#C9C9C9]">
-            Lokalizacje pochodzące od: {parentNode.name}
+            {t('locationTree.from', { parent: parentNode.name })}
           </div>
           <div className="flex flex-col gap-3">
             {childNodes.map(child => {
@@ -194,14 +191,14 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
               className="mt-4 w-full rounded bg-[#14d6f8] py-3 text-lg font-bold text-black hover:bg-[#0db8d7]"
               onClick={handleNextLevel}
             >
-              Przejdź dalej
+              {t('locationTree.next')}
             </button>
           )}
           <button
             className="mt-2 w-full rounded bg-[#1f3b82] py-3 text-lg text-white hover:bg-[#16285b]"
             onClick={handleFinish}
           >
-            Zakończ wybór lokalizacji
+            {t('locationTree.finish')}
           </button>
         </div>
       )}
@@ -210,7 +207,7 @@ export default function LocationTree({ data, onDone, onBack, onFinish }) {
         className="mt-3 w-full text-center text-xs text-[#C9C9C9] hover:underline"
         onClick={handleReset}
       >
-        Resetuj lokalizacje
+        {t('locationTree.reset')}
       </button>
     </div>
   );

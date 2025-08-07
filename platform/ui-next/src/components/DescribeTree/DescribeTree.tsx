@@ -6,6 +6,7 @@ import { fetchFeatureTree, fetchLocalizationTree, fetchSymptoms } from '../../ap
 import SelectModeStep from './components/SelectModeStep';
 import FormStep from './components/FormStep';
 import { NodeType, Step } from './enums';
+import { useTranslation } from 'react-i18next';
 
 export default function DescribeTree({
   onSelect,
@@ -45,6 +46,7 @@ export default function DescribeTree({
 
   const currentMeasurement = measurements?.find(m => m.uid === uid);
   const hasLocalization = currentMeasurement?.description?.localization?.length > 0;
+  const { t } = useTranslation('MeasurementDescribe');
 
   useEffect(() => {
     async function fetchSymptomsOptions() {
@@ -240,8 +242,8 @@ export default function DescribeTree({
         {error && !loading && (
           <div className="absolute inset-0 z-40 flex items-center justify-center bg-[#090C2A]/90 px-4 text-center">
             <div className="px- rounded bg-[#090C2A] py-3 text-sm text-white shadow-lg">
-              <p className="mb-2 font-semibold">Wystąpił błąd:</p>
-              <p>Nie udalo sie pobrac danych do drzewa.</p>
+              <p className="mb-2 font-semibold">{t('errorTitle')}</p>
+              <p>{t('errorMessage')}</p>{' '}
               <button
                 onClick={() => {
                   setError(null);
@@ -249,14 +251,14 @@ export default function DescribeTree({
                 }}
                 className="mt-4 rounded bg-[#225BA4] px-3 py-1 text-white hover:bg-[#2b6cb0]"
               >
-                Wróć
+                {t('backButton')}
               </button>
             </div>
           </div>
         )}
 
         <div className="flex items-center justify-between">
-          <span className="text-xl font-semibold text-[#C9C9C9]">Opisz pomiar</span>
+          <span className="text-xl font-semibold text-[#C9C9C9]">{t('title')}</span>
           <button
             onClick={onCancel}
             className="h-8 w-8 rounded text-white hover:bg-[#23274a]"

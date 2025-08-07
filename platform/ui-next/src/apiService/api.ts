@@ -52,7 +52,7 @@ export async function fetchFeatureTree({
     gender: patientGender,
   });
 
-  const res = await fetch(`${API_URL}/api/neo/symptoms/by-name/chars/?${params}`, {
+  const res = await fetch(`${API_URL}/api/neo/symptoms/by-name/chars/?${params}/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ referral_data: referralData }),

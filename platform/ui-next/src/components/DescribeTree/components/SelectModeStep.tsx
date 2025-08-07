@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function SelectModeStep({
   describeResult,
@@ -9,32 +10,36 @@ export default function SelectModeStep({
   onConfirm,
   onCancel,
 }) {
+  const { t } = useTranslation('MeasurementDescribe');
+
   return (
     <div className="flex flex-col gap-3">
-      <span className="text-sm text-white">Co chcesz zrobić?</span>
+      <span className="text-sm text-white">{t('selectMode.whatToDo')}</span>
 
       <button
         className="rounded bg-[#348CFD] py-2 text-white"
         onClick={onEditLocalization}
       >
-        Edytuj lokalizację ROI
+        {t('selectMode.editLocalization')}
       </button>
       <button
         className="rounded bg-[#225BA4] py-2 text-white"
         onClick={onAddVirtualLocation}
       >
-        Dodaj lokalizacje poza ROI
+        {t('selectMode.addVirtualLocation')}
       </button>
       <button
         className="rounded bg-[#14d6f8] py-2 font-bold text-black hover:bg-[#0db8d7]"
         onClick={onDescribe}
       >
-        Opisuj
+        {t('selectMode.describe')}
       </button>
 
       {describeResult.localization?.length > 0 && (
         <div className="mt-4">
-          <span className="text-sm font-semibold text-white">Lokalizacja pomiaru:</span>
+          <span className="text-sm font-semibold text-white">
+            {t('selectMode.measurementLocation')}
+          </span>
           <div className="mt-2 flex flex-wrap gap-2">
             {describeResult.localization.map((loc, idx) => (
               <span
@@ -43,7 +48,7 @@ export default function SelectModeStep({
                   loc.ROI === false ? 'bg-[#62768b] text-white' : 'bg-[#225BA4] text-white'
                 }`}
               >
-                {loc.name} {loc.ROI === false ? '(poza ROI)' : ''}
+                {loc.name} {loc.ROI === false ? `(${t('selectMode.outsideROI')})` : ''}
               </span>
             ))}
           </div>
@@ -59,7 +64,7 @@ export default function SelectModeStep({
         onClick={onConfirm}
         disabled={!isReadyToConfirm}
       >
-        Zatwierdź
+        {t('selectMode.confirm')}
       </button>
     </div>
   );

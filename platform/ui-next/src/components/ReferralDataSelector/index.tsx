@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-
+import { useTranslation } from 'react-i18next';
 export function ReferralDataSelector({
   referralData,
   circumstancesData,
@@ -11,6 +11,7 @@ export function ReferralDataSelector({
   onOpenModal: () => void;
 }) {
   const [expanded, setExpanded] = useState(true);
+  const { t } = useTranslation('MeasurementDescribe');
 
   const renderPills = (arr: any[], type = 'string') =>
     arr && arr.length > 0 ? (
@@ -39,7 +40,7 @@ export function ReferralDataSelector({
         })}
       </div>
     ) : (
-      <span className="mt-1 block text-sm text-gray-400">Brak wybranych danych</span>
+      <span className="mt-1 block text-sm text-gray-400">{t('referralDataSelector.noData')}</span>
     );
 
   return (
@@ -49,18 +50,22 @@ export function ReferralDataSelector({
         onClick={() => setExpanded(!expanded)}
         type="button"
       >
-        <span>Dane wyjściowe</span>
+        <span>{t('descriptionModal.title')}</span>
         {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </button>
 
       {expanded && (
         <div className="mt-3">
           <div className="mb-3">
-            <span className="text-sm font-semibold text-blue-200">Dane ze skierowania:</span>
+            <span className="text-sm font-semibold text-blue-200">
+              {t('descriptionModal.referralLabel')}:
+            </span>
             {renderPills(referralData, 'string')}
           </div>
           <div>
-            <span className="text-sm font-semibold text-blue-200">Warunki badania:</span>
+            <span className="text-sm font-semibold text-blue-200">
+              {t('descriptionModal.conditionsLabel')}:
+            </span>
             {renderPills(circumstancesData, 'condition')}
           </div>
           <div className="mt-4 flex justify-center">
@@ -69,7 +74,7 @@ export function ReferralDataSelector({
               onClick={onOpenModal}
               type="button"
             >
-              Modyfikuj dane wejściowe
+              {t('referralDataSelector.modifyEntryData')}
             </button>
           </div>
         </div>
